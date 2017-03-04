@@ -1,4 +1,6 @@
-import {saveTable} from './utilities/file';
+import {saveTable, tableExists} from './utilities/file';
+import assert from 'assert';
+import {errors} from './literals';
 
 const dbNames = new WeakMap();
 const tableData = new WeakMap();
@@ -24,7 +26,11 @@ export class Table {
 
   }
 
-  constructor(dbName, tableName) {
+  constructor(dbName, tableName, Schema) {
+
+    assert(dbName, errors.DB_NAME_IS_REQUIRED);
+    assert(tableName, errors.TABLE_NAME_IS_REQUIRED);
+    assert(Schema || tableExists(dbName, tableName), errors.SCHEMA_NAME_IS_REQUIRED);
 
     dbNames.set(this, dbName);
     tableNames.set(this, tableName);

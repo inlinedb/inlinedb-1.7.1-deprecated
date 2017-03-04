@@ -1,4 +1,5 @@
 import {Table} from '../src/table';
+import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as fileService from '../src/utilities/file';
@@ -14,7 +15,9 @@ describe('Given Table', () => {
 
     sandbox = sinon.sandbox.create();
 
-    table = new Table(dbName, tableName);
+    sandbox.stub(fileService, 'tableExists');
+
+    table = new Table(dbName, tableName, {});
 
   });
 
@@ -23,6 +26,30 @@ describe('Given Table', () => {
   it('should be constructed and used as an object', () => {
 
     expect(table).object();
+
+  });
+
+  describe('when initiating', () => {
+
+    it('should throw if dbName is not given', () => {
+
+      expect(() => new Table()).throws(errors.DB_NAME_IS_REQUIRED);
+
+    });
+
+    it('should throw if tableName is not given', () => {
+
+      expect(() => new Table(dbName)).throws(errors.TABLE_NAME_IS_REQUIRED);
+
+    });
+
+    it('should throw if table does not exist and Schema is not given', () => {
+
+      fileService.tableExists.returns(false);
+
+      expect(() => new Table(dbName, tableName)).throws(errors.SCHEMA_NAME_IS_REQUIRED);
+
+    });
 
   });
 
