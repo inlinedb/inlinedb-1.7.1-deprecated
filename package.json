@@ -4,8 +4,19 @@
   "description": "A node based in-project lite database management system",
   "main": "./dist/inline.db.js",
   "scripts": {
-    "test": "npm run coverage -- --threshold 100"
+    "build": "webpack",
+    "coverage": "babel-node node_modules/isparta/bin/isparta cover node_modules/mocha/bin/_mocha",
+    "coverage:html": "npm run coverage --report html",
+    "eslint": "eslint . --ignore-path .gitignore",
+    "test": "npm run coverage -- --threshold 100",
+    "preversion": "npm run eslint && npm test",
+    "postversion": "git push --all origin --follow-tags",
+    "version": "npm run build && git add -A dist"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Gopikrishna19/inlinedb.git"
@@ -15,5 +26,23 @@
   "bugs": {
     "url": "https://github.com/Gopikrishna19/inlinedb/issues"
   },
-  "homepage": "https://github.com/Gopikrishna19/inlinedb#readme"
+  "homepage": "https://github.com/Gopikrishna19/inlinedb#readme",
+  "devDependencies": {
+    "babel-cli": "6.23.0",
+    "babel-core": "6.23.1",
+    "babel-loader": "6.3.2",
+    "babel-preset-es2015": "6.22.0",
+    "code": "4.0.0",
+    "isparta": "4.0.0",
+    "istanbul": "0.4.4",
+    "mocha": "3.2.0",
+    "sinon": "1.17.7",
+    "webpack": "2.2.1"
+  },
+  "dependencies": {
+    "mkdirp": "0.5.1",
+    "rimraf": "2.6.1",
+    "tcomb": "3.2.18",
+    "tcomb-validation": "3.3.0"
+  }
 }
