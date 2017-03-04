@@ -14,8 +14,6 @@ describe('Given Table', () => {
 
     sandbox = sinon.sandbox.create();
 
-    sandbox.stub(fileService, 'saveTable');
-
     table = new Table(dbName, tableName);
 
   });
@@ -28,18 +26,44 @@ describe('Given Table', () => {
 
   });
 
-  it('should create the table with empty array on save', () => {
+  describe('when saving', () => {
 
-    table.save();
+    const callbackIndex = 3;
 
-    sinon.assert.calledOnce(fileService.saveTable);
-    sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, [], sinon.match.func);
+    beforeEach(() => {
 
-  });
+      sandbox.stub(fileService, 'saveTable');
 
-  it('should return a promise on save', () => {
+      fileService.saveTable.callsArgWith(callbackIndex, false);
 
-    expect(table.save()).instanceOf(Promise);
+    });
+
+    it('should create the table with empty array initially', () => {
+
+      table.save();
+
+      sinon.assert.calledOnce(fileService.saveTable);
+      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, [], sinon.match.func);
+
+    });
+
+    it('should return a promise on save', () => {
+
+      expect(table.save()).instanceOf(Promise);
+
+    });
+
+    it('should reject if there is an error when saving', async() => {
+
+      let rejected = false;
+
+      fileService.saveTable.callsArgWith(callbackIndex, true);
+
+      await table.save().catch(() => rejected = true);
+
+      expect(rejected).true();
+
+    });
 
   });
 

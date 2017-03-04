@@ -15,7 +15,9 @@ describe('Given file utility', () => {
     sandbox = sinon.sandbox.create();
 
     sandbox.stub(fs, 'writeFile');
-    sandbox.stub(mkdirp, 'mkdirp', (dirName, callback) => callback());
+    sandbox.stub(mkdirp, 'mkdirp');
+
+    mkdirp.mkdirp.callsArg(1);
 
   });
 
