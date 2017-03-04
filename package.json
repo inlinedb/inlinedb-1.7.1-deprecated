@@ -1,0 +1,19 @@
+{
+  "name": "inlinedb",
+  "version": "1.0.0",
+  "description": "A node based in-project lite database management system",
+  "main": "./dist/inline.db.js",
+  "scripts": {
+    "test": "npm run coverage -- --threshold 100"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gopikrishna19/inlinedb.git"
+  },
+  "author": "Gopikrishna Sathyamurthy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Gopikrishna19/inlinedb/issues"
+  },
+  "homepage": "https://github.com/Gopikrishna19/inlinedb#readme"
+}
