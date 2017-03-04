@@ -9,12 +9,17 @@ describe('Given file utility', () => {
   const dbName = 'dbName';
   const tableName = 'tableName';
   const tablePath = `./${dbName}/${tableName}.table`;
+  const idbPath = `./${dbName}/.idb`;
   const data = {id: 'data'};
   let sandbox;
 
   beforeEach(() => {
 
     sandbox = sinon.sandbox.create();
+
+    sandbox.stub(fs, 'readFile');
+    sandbox.stub(fs, 'writeFile');
+    sandbox.stub(mkdirp, 'mkdirp');
 
   });
 
@@ -23,9 +28,6 @@ describe('Given file utility', () => {
   describe('when saving table', () => {
 
     it('should write data to the file', () => {
-
-      sandbox.stub(fs, 'writeFile');
-      sandbox.stub(mkdirp, 'mkdirp');
 
       mkdirp.mkdirp.callsArg(1);
 
@@ -38,6 +40,41 @@ describe('Given file utility', () => {
 
       sinon.assert.calledOnce(fs.writeFile);
       sinon.assert.calledWithExactly(fs.writeFile, tablePath, JSON.stringify(data), done);
+
+    });
+
+  });
+
+  describe('when saving idb', () => {
+
+    it('should write data to the idb', () => {
+
+      mkdirp.mkdirp.callsArg(1);
+
+      const done = sandbox.stub;
+
+      fileService.saveIDB(dbName, data, done);
+
+      sinon.assert.calledOnce(mkdirp.mkdirp);
+      sinon.assert.calledWithExactly(mkdirp.mkdirp, `./${dbName}`, sinon.match.func);
+
+      sinon.assert.calledOnce(fs.writeFile);
+      sinon.assert.calledWithExactly(fs.writeFile, idbPath, JSON.stringify(data), done);
+
+    });
+
+  });
+
+  describe('when loading idb', () => {
+
+    it('should read idb file', () => {
+
+      const done = sandbox.stub();
+
+      fileService.loadIDB(dbName, done);
+
+      sinon.assert.calledOnce(fs.readFile);
+      sinon.assert.calledWithExactly(fs.readFile, idbPath, done);
 
     });
 

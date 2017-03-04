@@ -1,18 +1,14 @@
 import fs from 'fs';
 import {mkdirp} from 'mkdirp';
 
-const getLocation = (dbName, tableName) => `./${dbName}/${tableName}.table`;
+const getIDBLocation = dbName => `./${dbName}/.idb`;
+const getTableLocation = (dbName, tableName) => `./${dbName}/${tableName}.table`;
 
-export const saveTable = (dbName, tableName, data, done) =>
-  mkdirp(`./${dbName}`, () =>
-    fs.writeFile(getLocation(dbName, tableName), JSON.stringify(data), done)
-  );
-
-export const tableExists = (dbName, tableName) => {
+const fileExists = location => {
 
   try {
 
-    return fs.statSync(getLocation(dbName, tableName)).isFile();
+    return fs.statSync(location).isFile();
 
   } catch (e) {
 
@@ -21,3 +17,16 @@ export const tableExists = (dbName, tableName) => {
   }
 
 };
+
+export const loadIDB = (dbName, done) => fs.readFile(getIDBLocation(dbName), done);
+export const tableExists = (dbName, tableName) => fileExists(getTableLocation(dbName, tableName));
+
+export const saveIDB = (dbName, idbData, done) =>
+  mkdirp(`./${dbName}`, () =>
+    fs.writeFile(getIDBLocation(dbName), JSON.stringify(idbData), done)
+  );
+
+export const saveTable = (dbName, tableName, data, done) =>
+  mkdirp(`./${dbName}`, () =>
+    fs.writeFile(getTableLocation(dbName, tableName), JSON.stringify(data), done)
+  );
