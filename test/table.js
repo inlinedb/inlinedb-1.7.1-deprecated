@@ -139,12 +139,17 @@ describe('Given Table', () => {
 
     });
 
-    it('should create the table with empty array initially', () => {
+    it('should create the table with default data initially', () => {
+
+      const defaultData = {
+        index: {},
+        rows: []
+      };
 
       table.save();
 
       sinon.assert.calledOnce(fileService.saveTable);
-      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, [], sinon.match.func);
+      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, defaultData, sinon.match.func);
 
     });
 

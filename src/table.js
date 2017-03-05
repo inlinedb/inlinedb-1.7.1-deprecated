@@ -31,6 +31,11 @@ export class Table {
 
   constructor(dbName, tableName, Schema) {
 
+    const defaultData = {
+      index: {},
+      rows: []
+    };
+
     const tableExist = doesTableExist(dbName, tableName);
 
     assert(dbName, errors.DB_NAME_IS_REQUIRED);
@@ -39,7 +44,7 @@ export class Table {
 
     dbNames.set(this, dbName);
     tableNames.set(this, tableName);
-    tableData.set(this, []);
+    tableData.set(this, defaultData);
 
     this.loadSchema(tableExist, Schema);
 
