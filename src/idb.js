@@ -3,36 +3,6 @@ import {loadIDB, saveIDB} from './utilities/file';
 const dbNames = new WeakMap();
 const idbInstances = {};
 
-const load = dbName =>
-  new Promise(
-    resolve => loadIDB(
-      dbName,
-      (err, result) => {
-
-        let data = {};
-
-        if (!err) {
-
-          data = JSON.parse(result.toString());
-
-        }
-
-        resolve(data);
-
-      }
-    )
-  );
-
-const save = (dbName, data) =>
-  new Promise(
-    (resolve, reject) =>
-      saveIDB(
-        dbName,
-        data,
-        err => (err ? reject : resolve)()
-      )
-  );
-
 class IDB {
 
   get dbName() {
@@ -43,15 +13,7 @@ class IDB {
 
   constructor(dbName) {
 
-    this.data = {};
-
-    load(dbName).then(
-      data => this.data = Object.assign(
-        {},
-        this.data,
-        data
-      )
-    );
+    this.data = loadIDB(dbName);
 
     dbNames.set(this, dbName);
 
@@ -61,7 +23,10 @@ class IDB {
 
     this.data[tableName] = Schema;
 
-    return save(this.dbName, this.data);
+    saveIDB(
+      this.dbName,
+      this.data
+    );
 
   }
 
@@ -69,7 +34,10 @@ class IDB {
 
     delete this.data[tableName];
 
-    return save(this.dbName, this.data);
+    saveIDB(
+      this.dbName,
+      this.data
+    );
 
   }
 

@@ -18,13 +18,32 @@ const fileExists = location => {
 
 };
 
-export const loadIDB = (dbName, done) => fs.readFile(getIDBLocation(dbName), done);
-export const doesTableExist = (dbName, tableName) => fileExists(getTableLocation(dbName, tableName));
+export const doesTableExist = (dbName, tableName) =>
+  fileExists(getTableLocation(dbName, tableName));
 
-export const saveIDB = (dbName, idbData, done) =>
-  mkdirp(`./${dbName}`, () =>
-    fs.writeFile(getIDBLocation(dbName), JSON.stringify(idbData), done)
-  );
+export const loadIDB = dbName => {
+
+  const location = getIDBLocation(dbName);
+
+  if (fileExists(location)) {
+
+    const data = fs.readFileSync(location).toString();
+
+    return JSON.parse(data);
+
+  }
+
+  return {};
+
+};
+
+export const saveIDB = (dbName, idbData) => {
+
+  mkdirp(`./${dbName}`);
+
+  fs.writeFileSync(getIDBLocation(dbName), JSON.stringify(idbData));
+
+};
 
 export const saveTable = (dbName, tableName, data, done) =>
   mkdirp(`./${dbName}`, () =>

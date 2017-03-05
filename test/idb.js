@@ -14,10 +14,8 @@ describe('Given IDB', () => {
 
     sandbox = sinon.sandbox.create();
 
-    sandbox.stub(fileService, 'loadIDB');
+    sandbox.stub(fileService, 'loadIDB').returns({});
     sandbox.stub(fileService, 'saveIDB');
-
-    fileService.loadIDB.callsArgWith(1, false, '{}');
 
   });
 
@@ -33,6 +31,10 @@ describe('Given IDB', () => {
 
     const dbName1 = 'dbName1';
     const dbName2 = 'dbName2';
+
+    fileService.loadIDB
+      .onFirstCall().returns({})
+      .onSecondCall().returns({});
 
     const idbInstance1 = getIDBInstance(dbName1);
     const idbInstance2 = getIDBInstance(dbName2);
@@ -56,29 +58,19 @@ describe('Given IDB', () => {
       getIDBInstance(dbName);
 
       sinon.assert.calledOnce(fileService.loadIDB);
-      sinon.assert.calledWithExactly(fileService.loadIDB, dbName, sinon.match.func);
+      sinon.assert.calledWithExactly(fileService.loadIDB, dbName);
 
     });
 
-    it('should have resolved data if idb exists', async() => {
+    it('should have resolved data if idb exists', () => {
 
       const idbData = {[tableName]: Schema};
 
-      fileService.loadIDB.callsArgWith(1, false, JSON.stringify(idbData));
+      fileService.loadIDB.returns(idbData);
 
-      const idb = await getIDBInstance(dbName);
+      const idb = getIDBInstance(dbName);
 
       expect(idb.data).equals(idbData);
-
-    });
-
-    it('should have empty data if idb does not exist', async() => {
-
-      fileService.loadIDB.callsArgWith(1, true);
-
-      const idb = await getIDBInstance(dbName);
-
-      expect(idb.data).equals({});
 
     });
 
@@ -88,29 +80,14 @@ describe('Given IDB', () => {
 
     it('should add it to idb and save', () => {
 
-      const idb = getIDBInstance(dbName);
       const idbData = {[tableName]: Schema};
-
-      fileService.saveIDB.callsArg(2);
+      const idb = getIDBInstance(dbName);
 
       idb.createTable(tableName, Schema);
 
+      expect(idb.data).equals(idbData);
       sinon.assert.calledOnce(fileService.saveIDB);
-      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, idbData, sinon.match.func);
-
-    });
-
-    it('should reject on failing to save idb', async() => {
-
-      let rejected = false;
-
-      fileService.saveIDB.callsArgWith(2, true);
-
-      await getIDBInstance(dbName)
-        .createTable(tableName, dbName)
-        .catch(() => rejected = true);
-
-      expect(rejected).true();
+      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, idbData);
 
     });
 
@@ -120,16 +97,16 @@ describe('Given IDB', () => {
 
     it('should remove it from idb and save', () => {
 
+      const idbData = {[tableName]: Schema};
       const idb = getIDBInstance(dbName);
 
-      idb.data = {[tableName]: Schema};
-
-      fileService.saveIDB.callsArg(2);
+      idb.data = idbData;
 
       idb.dropTable(tableName);
 
+      expect(idb.data).equals({});
       sinon.assert.calledOnce(fileService.saveIDB);
-      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, {}, sinon.match.func);
+      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, {});
 
     });
 
@@ -139,15 +116,14 @@ describe('Given IDB', () => {
 
     it('should update the idb and save', () => {
 
-      const idb = getIDBInstance(dbName);
       const idbData = {[tableName]: Schema};
-
-      fileService.saveIDB.callsArg(2);
+      const idb = getIDBInstance(dbName);
 
       idb.updateTable(tableName, Schema);
 
+      expect(idb.data).equals(idbData);
       sinon.assert.calledOnce(fileService.saveIDB);
-      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, idbData, sinon.match.func);
+      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, idbData);
 
     });
 

@@ -11,14 +11,22 @@ describe('Given file utility', () => {
   const tablePath = `./${dbName}/${tableName}.table`;
   const idbPath = `./${dbName}/.idb`;
   const data = {id: 'data'};
-  let sandbox;
+  let sandbox,
+    stat;
 
   beforeEach(() => {
 
     sandbox = sinon.sandbox.create();
 
+    stat = {
+      isFile: sandbox.stub()
+    };
+
+    sandbox.stub(fs, 'statSync').returns(stat);
     sandbox.stub(fs, 'readFile');
+    sandbox.stub(fs, 'readFileSync');
     sandbox.stub(fs, 'writeFile');
+    sandbox.stub(fs, 'writeFileSync');
     sandbox.stub(mkdirp, 'mkdirp');
 
   });
@@ -49,17 +57,13 @@ describe('Given file utility', () => {
 
     it('should write data to the idb', () => {
 
-      mkdirp.mkdirp.callsArg(1);
-
-      const done = sandbox.stub;
-
-      fileService.saveIDB(dbName, data, done);
+      fileService.saveIDB(dbName, data);
 
       sinon.assert.calledOnce(mkdirp.mkdirp);
-      sinon.assert.calledWithExactly(mkdirp.mkdirp, `./${dbName}`, sinon.match.func);
+      sinon.assert.calledWithExactly(mkdirp.mkdirp, `./${dbName}`);
 
-      sinon.assert.calledOnce(fs.writeFile);
-      sinon.assert.calledWithExactly(fs.writeFile, idbPath, JSON.stringify(data), done);
+      sinon.assert.calledOnce(fs.writeFileSync);
+      sinon.assert.calledWithExactly(fs.writeFileSync, idbPath, JSON.stringify(data));
 
     });
 
@@ -67,32 +71,29 @@ describe('Given file utility', () => {
 
   describe('when loading idb', () => {
 
-    it('should read idb file', () => {
+    it('should read idb file if it exists', () => {
 
-      const done = sandbox.stub();
+      const idbData = {[tableName]: {schema: 'schema'}};
+      const idbString = JSON.stringify(idbData);
 
-      fileService.loadIDB(dbName, done);
+      stat.isFile.returns(true);
+      fs.readFileSync.returns(idbString);
 
-      sinon.assert.calledOnce(fs.readFile);
-      sinon.assert.calledWithExactly(fs.readFile, idbPath, done);
+      expect(fileService.loadIDB(dbName)).equals(idbData);
+      sinon.assert.calledWithExactly(fs.readFileSync, idbPath);
+
+    });
+
+    it('should not read idb file if it does not exist', () => {
+
+      expect(fileService.loadIDB(dbName)).equals({});
+      sinon.assert.notCalled(fs.readFileSync);
 
     });
 
   });
 
   describe('when checking if a table exists', () => {
-
-    let stat;
-
-    beforeEach(() => {
-
-      stat = {
-        isFile: sandbox.stub()
-      };
-
-      sandbox.stub(fs, 'statSync').returns(stat);
-
-    });
 
     it('should get stat for the table', () => {
 
