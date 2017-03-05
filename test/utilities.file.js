@@ -96,7 +96,7 @@ describe('Given file utility', () => {
 
     it('should get stat for the table', () => {
 
-      fileService.tableExists(dbName, tableName);
+      fileService.doesTableExist(dbName, tableName);
 
       sinon.assert.calledOnce(fs.statSync);
       sinon.assert.calledWithExactly(fs.statSync, tablePath);
@@ -107,7 +107,7 @@ describe('Given file utility', () => {
 
       stat.isFile.returns(true);
 
-      expect(fileService.tableExists(dbName, tableName)).true();
+      expect(fileService.doesTableExist(dbName, tableName)).true();
 
     });
 
@@ -115,7 +115,7 @@ describe('Given file utility', () => {
 
       stat.isFile.throws(false);
 
-      expect(fileService.tableExists(dbName, tableName)).false();
+      expect(fileService.doesTableExist(dbName, tableName)).false();
 
     });
 

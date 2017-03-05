@@ -19,7 +19,7 @@ const fileExists = location => {
 };
 
 export const loadIDB = (dbName, done) => fs.readFile(getIDBLocation(dbName), done);
-export const tableExists = (dbName, tableName) => fileExists(getTableLocation(dbName, tableName));
+export const doesTableExist = (dbName, tableName) => fileExists(getTableLocation(dbName, tableName));
 
 export const saveIDB = (dbName, idbData, done) =>
   mkdirp(`./${dbName}`, () =>

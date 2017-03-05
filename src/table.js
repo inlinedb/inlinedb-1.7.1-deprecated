@@ -1,10 +1,12 @@
-import {saveTable, tableExists} from './utilities/file';
+import {doesTableExist, saveTable} from './utilities/file';
 import assert from 'assert';
 import {errors} from './literals';
+import {getIDBInstance} from './idb';
 
 const dbNames = new WeakMap();
 const tableData = new WeakMap();
 const tableNames = new WeakMap();
+const tableSchemas = new WeakMap();
 
 export class Table {
 
@@ -28,13 +30,36 @@ export class Table {
 
   constructor(dbName, tableName, Schema) {
 
+    const tableExist = doesTableExist(dbName, tableName);
+
     assert(dbName, errors.DB_NAME_IS_REQUIRED);
     assert(tableName, errors.TABLE_NAME_IS_REQUIRED);
-    assert(Schema || tableExists(dbName, tableName), errors.SCHEMA_NAME_IS_REQUIRED);
+    assert(Schema || tableExist, errors.SCHEMA_NAME_IS_REQUIRED);
 
     dbNames.set(this, dbName);
     tableNames.set(this, tableName);
     tableData.set(this, []);
+
+    this.loadSchema(tableExist, Schema);
+
+  }
+
+  loadSchema(tableExist, Schema) {
+
+    const tableName = this.tableName;
+    const idb = getIDBInstance(this.dbName);
+
+    if (tableExist) {
+
+      tableSchemas.set(this, idb.readTable(tableName));
+
+    } else {
+
+      idb.createTable(tableName, Schema);
+
+    }
+
+    this.idb = idb;
 
   }
 

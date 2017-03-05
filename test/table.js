@@ -3,21 +3,30 @@ import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as fileService from '../src/utilities/file';
+import * as idbService from '../src/idb';
 
 describe('Given Table', () => {
 
+  const Schema = {schema: 'schema'};
   const dbName = 'dbName';
   const tableName = 'tableName';
-  let sandbox,
+  let idbInstance,
+    sandbox,
     table;
 
   beforeEach(() => {
 
     sandbox = sinon.sandbox.create();
 
-    sandbox.stub(fileService, 'tableExists');
+    idbInstance = {
+      createTable: sandbox.stub(),
+      readTable: sandbox.stub()
+    };
 
-    table = new Table(dbName, tableName, {});
+    sandbox.stub(fileService);
+    sandbox.stub(idbService, 'getIDBInstance').returns(idbInstance);
+
+    table = new Table(dbName, tableName, Schema);
 
   });
 
@@ -45,9 +54,44 @@ describe('Given Table', () => {
 
     it('should throw if table does not exist and Schema is not given', () => {
 
-      fileService.tableExists.returns(false);
-
       expect(() => new Table(dbName, tableName)).throws(errors.SCHEMA_NAME_IS_REQUIRED);
+
+    });
+
+    it('should not throw any error if table exists and Schema is not given', () => {
+
+      fileService.doesTableExist.returns(true);
+
+      expect(() => new Table(dbName, tableName)).not.throws();
+
+    });
+
+    it('should get idb instance', () => {
+
+      sinon.assert.calledOnce(idbService.getIDBInstance);
+      sinon.assert.calledWithExactly(idbService.getIDBInstance, dbName);
+
+    });
+
+    it('should read table schema if table exists', () => {
+
+      fileService.doesTableExist.returns(true);
+      idbInstance.createTable.reset();
+      idbInstance.readTable.reset();
+
+      new Table(dbName, tableName);
+
+      sinon.assert.notCalled(idbInstance.createTable);
+      sinon.assert.calledOnce(idbInstance.readTable);
+      sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
+
+    });
+
+    it('should create table schema if table does not exist', () => {
+
+      sinon.assert.notCalled(idbInstance.readTable);
+      sinon.assert.calledOnce(idbInstance.createTable);
+      sinon.assert.calledWithExactly(idbInstance.createTable, tableName, Schema);
 
     });
 
@@ -58,8 +102,6 @@ describe('Given Table', () => {
     const callbackIndex = 3;
 
     beforeEach(() => {
-
-      sandbox.stub(fileService, 'saveTable');
 
       fileService.saveTable.callsArgWith(callbackIndex, false);
 
