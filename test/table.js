@@ -4,10 +4,11 @@ import {expect} from 'code';
 import sinon from 'sinon';
 import * as fileService from '../src/utilities/file';
 import * as idbService from '../src/idb';
+import * as schemaService from '../src/utilities/schema';
 
 describe('Given Table', () => {
 
-  const Schema = {schema: 'schema'};
+  const Schema = {foo: 'String'};
   const dbName = 'dbName';
   const tableName = 'tableName';
   let idbInstance,
@@ -24,6 +25,7 @@ describe('Given Table', () => {
     };
 
     sandbox.stub(fileService);
+    sandbox.stub(schemaService);
     sandbox.stub(idbService, 'getIDBInstance').returns(idbInstance);
 
     table = new Table(dbName, tableName, Schema);
@@ -58,14 +60,6 @@ describe('Given Table', () => {
 
     });
 
-    it('should not throw any error if table exists and Schema is not given', () => {
-
-      fileService.doesTableExist.returns(true);
-
-      expect(() => new Table(dbName, tableName)).not.throws();
-
-    });
-
     it('should get idb instance', () => {
 
       sinon.assert.calledOnce(idbService.getIDBInstance);
@@ -73,17 +67,55 @@ describe('Given Table', () => {
 
     });
 
-    it('should read table schema if table exists', () => {
+    it('should parse given Schema', () => {
 
-      fileService.doesTableExist.returns(true);
-      idbInstance.createTable.reset();
-      idbInstance.readTable.reset();
+      sinon.assert.calledOnce(schemaService.parse);
+      sinon.assert.calledWithExactly(schemaService.parse, Schema);
 
-      new Table(dbName, tableName);
+    });
 
-      sinon.assert.notCalled(idbInstance.createTable);
-      sinon.assert.calledOnce(idbInstance.readTable);
-      sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
+    describe('when table exists', () => {
+
+      const storedSchema = {
+        stored: 'String'
+      };
+
+      beforeEach(() => {
+
+        fileService.doesTableExist.returns(true);
+        idbInstance.readTable.returns(storedSchema);
+
+      });
+
+      it('should not throw any error if table exists and Schema is not given', () => {
+
+        expect(() => new Table(dbName, tableName)).not.throws();
+
+      });
+
+      it('should read table schema if table exists', () => {
+
+        idbInstance.createTable.reset();
+        idbInstance.readTable.reset();
+
+        new Table(dbName, tableName);
+
+        sinon.assert.notCalled(idbInstance.createTable);
+        sinon.assert.calledOnce(idbInstance.readTable);
+        sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
+
+      });
+
+      it('should parse stored schema', () => {
+
+        schemaService.parse.reset();
+
+        new Table(dbName, tableName);
+
+        sinon.assert.calledOnce(schemaService.parse);
+        sinon.assert.calledWithExactly(schemaService.parse, storedSchema);
+
+      });
 
     });
 

@@ -2,6 +2,7 @@ import {doesTableExist, saveTable} from './utilities/file';
 import assert from 'assert';
 import {errors} from './literals';
 import {getIDBInstance} from './idb';
+import {parse} from './utilities/schema';
 
 const dbNames = new WeakMap();
 const tableData = new WeakMap();
@@ -51,11 +52,12 @@ export class Table {
 
     if (tableExist) {
 
-      tableSchemas.set(this, idb.readTable(tableName));
+      tableSchemas.set(this, parse(idb.readTable(tableName)));
 
     } else {
 
       idb.createTable(tableName, Schema);
+      tableSchemas.set(this, parse(Schema));
 
     }
 
