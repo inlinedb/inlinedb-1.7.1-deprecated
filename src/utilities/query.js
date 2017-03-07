@@ -1,16 +1,7 @@
-const idGenerator = (function *() {
+let id = 0;
 
-  let index = 0;
-
-  while (true) {
-
-    index += 1;
-
-    yield `${new Date().getTime() + index}`;
-
-  }
-
-})();
+const nextId = () => id += 1;
+const getId = () => `${new Date().getTime() + nextId()}`;
 
 const buildIndex = rows => rows.reduce((indices, row, index) => {
 
@@ -35,7 +26,7 @@ const insert = (query, data) => {
 
   const rows = data.rows.concat(
     query.rows.map(row => ({
-      $$idbId: idGenerator.next().value,
+      $$idbId: getId(),
       ...row
     }))
   );

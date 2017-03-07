@@ -14,6 +14,14 @@ describe('Given query utility', () => {
 
   });
 
+  it('should return the data without modification for invalid query', () => {
+
+    const data = 'data';
+
+    expect(queryService.executeQuery({type: '!@#$%^&*()'}, data)).equals(data);
+
+  });
+
   it('should execute insert queries', () => {
 
     const clock = sinon.useFakeTimers();
