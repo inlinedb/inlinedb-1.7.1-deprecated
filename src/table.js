@@ -1,13 +1,20 @@
-import {doesTableExist, saveTable} from './utilities/file';
+import {doesTableExist, loadTable, saveTable} from './utilities/file';
+import {executeQuery, queryTypes} from './utilities/query';
+import {parse, validate} from './utilities/schema';
 import assert from 'assert';
 import {errors} from './literals';
 import {getIDBInstance} from './idb';
-import {parse} from './utilities/schema';
 
 const dbNames = new WeakMap();
 const tableData = new WeakMap();
 const tableNames = new WeakMap();
+const tableQueries = new WeakMap();
 const tableSchemas = new WeakMap();
+
+const defaultData = {
+  index: {},
+  rows: []
+};
 
 export class Table {
 
@@ -29,12 +36,13 @@ export class Table {
 
   }
 
-  constructor(dbName, tableName, Schema) {
+  get tableSchema() {
 
-    const defaultData = {
-      index: {},
-      rows: []
-    };
+    return tableSchemas.get(this);
+
+  }
+
+  constructor(dbName, tableName, Schema) {
 
     const tableExist = doesTableExist(dbName, tableName);
 
@@ -45,12 +53,33 @@ export class Table {
     dbNames.set(this, dbName);
     tableNames.set(this, tableName);
     tableData.set(this, defaultData);
+    tableQueries.set(this, []);
 
     this.loadSchema(tableExist, Schema);
 
   }
 
-  loadSchema(tableExist, Schema) {
+  executeQueries() {
+
+    return tableQueries.get(this).reduce(
+      (initialData, query) => executeQuery(query, initialData),
+      this.tableData
+    );
+
+  }
+
+  insert(...rows) {
+
+    validate(this.tableSchema, ...rows);
+
+    tableQueries.get(this).push({
+      rows,
+      type: queryTypes.INSERT
+    });
+
+  }
+
+  async loadSchema(tableExist, Schema) {
 
     const tableName = this.tableName;
     const idb = getIDBInstance(this.dbName);
@@ -74,12 +103,28 @@ export class Table {
 
     return new Promise((resolve, reject) => {
 
-      saveTable(
-        this.dbName,
-        this.tableName,
-        this.tableData,
-        err => (err ? reject : resolve)()
-      );
+      loadTable(this.dbName, this.tableName, (error, data) => {
+
+        tableData.set(this, error ? defaultData : data);
+
+        const newData = this.executeQueries();
+
+        const update = () => {
+
+          tableData.set(this, newData);
+
+          resolve();
+
+        };
+
+        return saveTable(
+          this.dbName,
+          this.tableName,
+          newData,
+          err => (err ? reject : update)()
+        );
+
+      });
 
     });
 

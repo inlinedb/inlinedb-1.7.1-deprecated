@@ -4,6 +4,7 @@ import {expect} from 'code';
 import sinon from 'sinon';
 import * as fileService from '../src/utilities/file';
 import * as idbService from '../src/idb';
+import * as queryService from '../src/utilities/query';
 import * as schemaService from '../src/utilities/schema';
 
 describe('Given Table', () => {
@@ -25,8 +26,11 @@ describe('Given Table', () => {
     };
 
     sandbox.stub(fileService);
+    sandbox.stub(queryService);
     sandbox.stub(schemaService);
     sandbox.stub(idbService, 'getIDBInstance').returns(idbInstance);
+
+    schemaService.parse.returns(Schema);
 
     table = new Table(dbName, tableName, Schema);
 
@@ -139,17 +143,12 @@ describe('Given Table', () => {
 
     });
 
-    it('should create the table with default data initially', () => {
-
-      const defaultData = {
-        index: {},
-        rows: []
-      };
+    it('should loadTable before saving', () => {
 
       table.save();
 
-      sinon.assert.calledOnce(fileService.saveTable);
-      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, defaultData, sinon.match.func);
+      sinon.assert.calledOnce(fileService.loadTable);
+      sinon.assert.calledWithExactly(fileService.loadTable, dbName, tableName, sinon.match.func);
 
     });
 
@@ -159,15 +158,91 @@ describe('Given Table', () => {
 
     });
 
+    it('should create the table with default data when failed to load table', () => {
+
+      const defaultData = {
+        index: {},
+        rows: []
+      };
+
+      fileService.loadTable.callsArgWith(2, true);
+
+      table.save();
+
+      sinon.assert.calledOnce(fileService.saveTable);
+      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, defaultData, sinon.match.func);
+
+    });
+
+    it('should create the table with loaded data', () => {
+
+      const data = {
+        index: {},
+        rows: [{row: 'row1'}]
+      };
+
+      fileService.loadTable.callsArgWith(2, false, data);
+
+      table.save();
+
+      sinon.assert.calledOnce(fileService.saveTable);
+      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, data, sinon.match.func);
+
+    });
+
     it('should reject if there is an error when saving', async() => {
 
       let rejected = false;
 
+      fileService.loadTable.callsArgWith(2, true);
       fileService.saveTable.callsArgWith(callbackIndex, true);
 
       await table.save().catch(() => rejected = true);
 
       expect(rejected).true();
+
+    });
+
+  });
+
+  describe('when inserting rows', () => {
+
+    const rows = [
+      {row: 'row1'},
+      {row: 'row2'}
+    ];
+
+    it('should validate them', () => {
+
+      table.insert(...rows);
+
+      sinon.assert.calledOnce(schemaService.validate);
+      sinon.assert.calledWithExactly(schemaService.validate, Schema, ...rows);
+
+    });
+
+    it('should execute the insert query on save', () => {
+
+      const initialData = {
+        index: {},
+        rows: []
+      };
+
+      fileService.loadTable.callsArgWith(2, false, initialData);
+
+      table.insert(...rows);
+
+      table.save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithExactly(
+        queryService.executeQuery,
+        {
+          rows,
+          type: queryService.queryTypes.INSERT,
+        },
+        initialData
+      );
 
     });
 
