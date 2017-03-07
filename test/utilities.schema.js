@@ -2,7 +2,7 @@ import {errors} from '../src/literals';
 import {expect} from 'code';
 import * as schemaService from '../src/utilities/schema';
 
-describe('Given Schema Service', () => {
+describe('Given Schema utility', () => {
 
   const escape = str => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 
