@@ -40,10 +40,15 @@ export const loadIDB = dbName => {
 export const saveIDB = (dbName, idbData) => {
 
   mkdirp(`./${dbName}`);
-
   fs.writeFileSync(getIDBLocation(dbName), JSON.stringify(idbData));
 
 };
+
+export const loadTable = (dbName, tableName, done) =>
+  fs.readFile(
+    getTableLocation(dbName, tableName),
+    (err, data) => err ? done(err) : done(null, JSON.parse(data.toString()))
+  );
 
 export const saveTable = (dbName, tableName, data, done) =>
   mkdirp(`./${dbName}`, () =>

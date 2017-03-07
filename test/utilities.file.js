@@ -53,6 +53,49 @@ describe('Given file utility', () => {
 
   });
 
+  describe('when loading table', () => {
+
+    let done;
+
+    beforeEach(() => {
+
+      done = sandbox.stub();
+
+    });
+
+    it('should read the table file', () => {
+
+      fileService.loadTable(dbName, tableName, done);
+
+      sinon.assert.calledOnce(fs.readFile);
+      sinon.assert.calledWithExactly(fs.readFile, tablePath, sinon.match.func);
+
+    });
+
+    it('should call done with err', () => {
+
+      fs.readFile.callsArgWith(1, true);
+
+      fileService.loadTable(dbName, tableName, done);
+
+      sinon.assert.calledOnce(done);
+      sinon.assert.calledWithExactly(done, true);
+
+    });
+
+    it('should call done with data', () => {
+
+      fs.readFile.callsArgWith(1, false, JSON.stringify(data));
+
+      fileService.loadTable(dbName, tableName, done);
+
+      sinon.assert.calledOnce(done);
+      sinon.assert.calledWithExactly(done, null, data);
+
+    });
+
+  });
+
   describe('when saving idb', () => {
 
     it('should write data to the idb', () => {
