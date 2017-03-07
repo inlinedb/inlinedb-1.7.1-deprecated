@@ -3,10 +3,10 @@ language:
 node_js:
   - stable
 before_script:
-  - npm i -g coveralls
+  - npm i -g codecov
   - rm -rf coverage
 script:
   - npm run eslint
   - npm run test
 after_success:
-  - cat ./coverage/lcov.info | coveralls
+  - codecov
