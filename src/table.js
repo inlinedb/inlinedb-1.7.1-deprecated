@@ -16,6 +16,11 @@ const defaultData = {
   rows: []
 };
 
+const executeQueries = table => tableQueries.get(table).reduce(
+  (initialData, query) => executeQuery(query, initialData),
+  table.tableData
+);
+
 export class Table {
 
   get dbName() {
@@ -59,15 +64,6 @@ export class Table {
 
   }
 
-  executeQueries() {
-
-    return tableQueries.get(this).reduce(
-      (initialData, query) => executeQuery(query, initialData),
-      this.tableData
-    );
-
-  }
-
   insert(...rows) {
 
     validate(this.tableSchema, ...rows);
@@ -107,7 +103,7 @@ export class Table {
 
         tableData.set(this, error ? defaultData : data);
 
-        const newData = this.executeQueries();
+        const newData = executeQueries(this);
 
         const update = () => {
 
