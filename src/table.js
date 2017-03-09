@@ -21,6 +21,26 @@ const executeQueries = table => tableQueries.get(table).reduce(
   table.tableData
 );
 
+const loadSchema = (table, tableExist, Schema) => {
+
+  const tableName = table.tableName;
+  const idb = getIDBInstance(table.dbName);
+
+  if (tableExist) {
+
+    tableSchemas.set(table, parse(idb.readTable(tableName)));
+
+  } else {
+
+    idb.createTable(tableName, Schema);
+    tableSchemas.set(table, parse(Schema));
+
+  }
+
+  return idb;
+
+};
+
 export class Table {
 
   get dbName() {
@@ -60,7 +80,7 @@ export class Table {
     tableData.set(this, defaultData);
     tableQueries.set(this, []);
 
-    this.loadSchema(tableExist, Schema);
+    this.idb = loadSchema(this, tableExist, Schema);
 
   }
 
@@ -72,26 +92,6 @@ export class Table {
       rows,
       type: queryTypes.INSERT
     });
-
-  }
-
-  async loadSchema(tableExist, Schema) {
-
-    const tableName = this.tableName;
-    const idb = getIDBInstance(this.dbName);
-
-    if (tableExist) {
-
-      tableSchemas.set(this, parse(idb.readTable(tableName)));
-
-    } else {
-
-      idb.createTable(tableName, Schema);
-      tableSchemas.set(this, parse(Schema));
-
-    }
-
-    this.idb = idb;
 
   }
 
