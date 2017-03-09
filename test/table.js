@@ -246,6 +246,12 @@ describe('Given Table', () => {
 
     });
 
+    it('should return table', () => {
+
+      expect(table.insert(...rows)).equals(table);
+
+    });
+
   });
 
 });

@@ -93,6 +93,8 @@ export class Table {
       type: queryTypes.INSERT
     });
 
+    return this;
+
   }
 
   save() {
