@@ -97,6 +97,32 @@ export class Table {
 
   }
 
+  query(filter = () => true) {
+
+    return new Promise((resolve, reject) => {
+
+      loadTable(this.dbName, this.tableName, (error, data) => {
+
+        if (error) {
+
+          reject(error);
+
+        } else if (typeof filter === 'function') {
+
+          resolve(data.rows.filter(filter));
+
+        } else {
+
+          resolve([].concat(filter).map(id => data.rows[data.index[id]]));
+
+        }
+
+      });
+
+    });
+
+  }
+
   save() {
 
     return new Promise((resolve, reject) => {

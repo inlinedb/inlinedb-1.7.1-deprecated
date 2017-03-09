@@ -254,4 +254,82 @@ describe('Given Table', () => {
 
   });
 
+  describe('when querying rows', () => {
+
+    const data = {
+      index: {
+        row1: 0,
+        row2: 1
+      },
+      rows: [
+        {row: 'row1'},
+        {row: 'row2'}
+      ]
+    };
+
+    it('should load table to search', () => {
+
+      table.query();
+
+      sinon.assert.calledOnce(fileService.loadTable);
+      sinon.assert.calledWithExactly(fileService.loadTable, dbName, tableName, sinon.match.func);
+
+    });
+
+    describe('when successfully loaded table', () => {
+
+      beforeEach(() => fileService.loadTable.callsArgWith(2, false, data));
+
+      it('should return all rows when there is no filter', async() => {
+
+        const result = await table.query();
+
+        expect(result).equals(data.rows);
+
+      });
+
+      it('should filter based on id', async() => {
+
+        const result = await table.query('row1');
+
+        expect(result).equals([data.rows[0]]);
+
+      });
+
+      it('should filter based on array of ids', async() => {
+
+        const result = await table.query(['row2', 'row1']);
+
+        expect(result).equals([data.rows[1], data.rows[0]]);
+
+      });
+
+      it('should filter based on filter function', async() => {
+
+        const result = await table.query(row => row.row === 'row2');
+
+        expect(result).equals([data.rows[1]]);
+
+      });
+
+    });
+
+    describe('when failed to load table', () => {
+
+      it('should reject', async() => {
+
+        let rejected = false;
+
+        fileService.loadTable.callsArgWith(2, true);
+
+        await table.query().catch(() => rejected = true);
+
+        expect(rejected).true();
+
+      });
+
+    });
+
+  });
+
 });
