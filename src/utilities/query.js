@@ -22,6 +22,22 @@ const deleteRow = (query, data) => {
 
 };
 
+const deleteById = (query, data) => {
+
+  const rows = data.rows.slice();
+  const indices = query.ids
+    .map($$idbId => data.index[$$idbId])
+    .sort((a, b) => b - a);
+
+  indices.forEach(index => rows.splice(index, 1));
+
+  return {
+    index: buildIndex(rows),
+    rows
+  };
+
+};
+
 const insert = (query, data) => {
 
   const rows = data.rows.concat(
@@ -54,10 +70,31 @@ const update = (query, data) => {
 
 };
 
+const updateById = (query, data) => {
+
+  const rows = data.rows.slice();
+
+  query.ids.forEach($$idbId => {
+
+    const index = data.index[$$idbId];
+
+    rows[index] = query.update(rows[index]);
+
+  });
+
+  return {
+    index: data.index,
+    rows
+  };
+
+};
+
 const queryExecutors = {
   delete: deleteRow,
+  deleteById,
   insert,
-  update
+  update,
+  updateById
 };
 
 export const executeQuery = (query, data) => {
@@ -70,6 +107,8 @@ export const executeQuery = (query, data) => {
 
 export const queryTypes = {
   DELETE: 'delete',
+  DELETE_BY_ID: 'deleteById',
   INSERT: 'insert',
-  UPDATE: 'update'
+  UPDATE: 'update',
+  UPDATE_BY_ID: 'updateById'
 };
