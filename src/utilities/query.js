@@ -11,7 +11,7 @@ const buildIndex = rows => rows.reduce((indices, row, index) => {
 
 }, {});
 
-const deleteRow = (query, data) => {
+const deleteRows = (query, data) => {
 
   const rows = data.rows.filter(row => !Boolean(query.filter(row)));
 
@@ -90,8 +90,8 @@ const updateById = (query, data) => {
 };
 
 const queryExecutors = {
-  delete: deleteRow,
   deleteById,
+  deleteRows,
   insert,
   update,
   updateById
@@ -106,8 +106,8 @@ export const executeQuery = (query, data) => {
 };
 
 export const queryTypes = {
-  DELETE: 'delete',
   DELETE_BY_ID: 'deleteById',
+  DELETE_ROWS: 'deleteRows',
   INSERT: 'insert',
   UPDATE: 'update',
   UPDATE_BY_ID: 'updateById'

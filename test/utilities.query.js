@@ -7,8 +7,8 @@ describe('Given query utility', () => {
   it('should define query types', () => {
 
     expect(queryService.queryTypes).equals({
-      DELETE: 'delete',
       DELETE_BY_ID: 'deleteById',
+      DELETE_ROWS: 'deleteRows',
       INSERT: 'insert',
       UPDATE: 'update',
       UPDATE_BY_ID: 'updateById'
@@ -162,7 +162,7 @@ describe('Given query utility', () => {
     };
     const query = {
       filter: row => row.$$idbId > 1,
-      type: 'delete'
+      type: 'deleteRows'
     };
     const result = queryService.executeQuery(query, data);
 
