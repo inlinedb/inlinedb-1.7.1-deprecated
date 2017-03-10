@@ -135,11 +135,11 @@ describe('Given Table', () => {
 
   describe('when saving', () => {
 
-    const callbackIndex = 3;
+    const saveTableCallback = 3;
 
     beforeEach(() => {
 
-      fileService.saveTable.callsArgWith(callbackIndex, false);
+      fileService.saveTable.callsArgWith(saveTableCallback, false);
 
     });
 
@@ -160,12 +160,13 @@ describe('Given Table', () => {
 
     it('should create the table with default data when failed to load table', () => {
 
+      const loadTableCallback = 2;
       const defaultData = {
         index: {},
         rows: []
       };
 
-      fileService.loadTable.callsArgWith(2, true);
+      fileService.loadTable.callsArgWith(loadTableCallback, true);
 
       table.save();
 
@@ -176,12 +177,13 @@ describe('Given Table', () => {
 
     it('should create the table with loaded data', () => {
 
+      const loadTableCallback = 2;
       const data = {
         index: {},
         rows: [{row: 'row1'}]
       };
 
-      fileService.loadTable.callsArgWith(2, false, data);
+      fileService.loadTable.callsArgWith(loadTableCallback, false, data);
 
       table.save();
 
@@ -192,10 +194,11 @@ describe('Given Table', () => {
 
     it('should reject if there is an error when saving', async() => {
 
+      const loadTableCallback = 2;
       let rejected = false;
 
-      fileService.loadTable.callsArgWith(2, true);
-      fileService.saveTable.callsArgWith(callbackIndex, true);
+      fileService.loadTable.callsArgWith(loadTableCallback, true);
+      fileService.saveTable.callsArgWith(saveTableCallback, true);
 
       await table.save().catch(() => rejected = true);
 
@@ -223,12 +226,13 @@ describe('Given Table', () => {
 
     it('should execute the insert query on save', () => {
 
+      const loadTableCallback = 2;
       const initialData = {
         index: {},
         rows: []
       };
 
-      fileService.loadTable.callsArgWith(2, false, initialData);
+      fileService.loadTable.callsArgWith(loadTableCallback, false, initialData);
 
       table.insert(...rows);
 
@@ -278,7 +282,9 @@ describe('Given Table', () => {
 
     describe('when successfully loaded table', () => {
 
-      beforeEach(() => fileService.loadTable.callsArgWith(2, false, data));
+      const loadTableCallback = 2;
+
+      beforeEach(() => fileService.loadTable.callsArgWith(loadTableCallback, false, data));
 
       it('should return all rows when there is no filter', async() => {
 
@@ -318,15 +324,207 @@ describe('Given Table', () => {
 
       it('should reject', async() => {
 
+        const loadTableCallback = 2;
         let rejected = false;
 
-        fileService.loadTable.callsArgWith(2, true);
+        fileService.loadTable.callsArgWith(loadTableCallback, true);
 
         await table.query().catch(() => rejected = true);
 
         expect(rejected).true();
 
       });
+
+    });
+
+  });
+
+  describe('when updating rows', () => {
+
+    const update = row => ({...row});
+    const data = {
+      index: {},
+      rows: [{row: 'row1'}]
+    };
+
+    beforeEach(() => {
+
+      const saveTableCallback = 3;
+      const loadTableCallback = 2;
+
+      fileService.loadTable.callsArgWith(loadTableCallback, false, data);
+      fileService.saveTable.callsArgWith(saveTableCallback, false, data);
+
+    });
+
+    it('should return table', () => {
+
+      expect(table.update(sandbox.stub())).equals(table);
+
+    });
+
+    it('should throw if no update function is provided', () => {
+
+      expect(() => table.update()).throws(errors.INVALID_UPDATE_FUNCTION);
+
+    });
+
+    it('should update all rows when there is no filter', async() => {
+
+      await table.update(update).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          type: 'update',
+          update
+        },
+        data
+      );
+
+    });
+
+    it('should update based on filter function', async() => {
+
+      const filter = row => row.$$idbId > 2;
+
+      await table.update(update, filter).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          shouldUpdate: filter,
+          type: 'update',
+          update
+        },
+        data
+      );
+
+    });
+
+    it('should update based on id', async() => {
+
+      const id = 'row1';
+
+      await table.update(update, id).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          ids: [id],
+          type: 'updateById',
+          update
+        },
+        data
+      );
+
+    });
+
+    it('should update based on array of ids', async() => {
+
+      const ids = ['row1', 'row2'];
+
+      await table.update(update, ids).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          ids,
+          type: 'updateById',
+          update
+        },
+        data
+      );
+
+    });
+
+  });
+
+  describe('when deleting rows', () => {
+
+    const data = {
+      index: {},
+      rows: [{row: 'row1'}]
+    };
+
+    beforeEach(() => {
+
+      const saveTableCallback = 3;
+      const loadTableCallback = 2;
+
+      fileService.loadTable.callsArgWith(loadTableCallback, false, data);
+      fileService.saveTable.callsArgWith(saveTableCallback, false, data);
+
+    });
+
+    it('should return table', () => {
+
+      expect(table.deleteRows(sandbox.stub())).equals(table);
+
+    });
+
+    it('should delete all rows when there is no filter', async() => {
+
+      await table.deleteRows().save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          type: 'deleteRows'
+        },
+        data
+      );
+
+    });
+
+    it('should delete based on filter function', async() => {
+
+      const filter = row => row.$$idbId > 2;
+
+      await table.deleteRows(filter).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          filter,
+          type: 'deleteRows'
+        },
+        data
+      );
+
+    });
+
+    it('should delete based on id', async() => {
+
+      const id = 'row1';
+
+      await table.deleteRows(id).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          ids: [id],
+          type: 'deleteById'
+        },
+        data
+      );
+
+    });
+
+    it('should delete based on array of ids', async() => {
+
+      const ids = ['row1', 'row2'];
+
+      await table.deleteRows(ids).save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
+      sinon.assert.calledWithMatch(queryService.executeQuery,
+        {
+          ids,
+          type: 'deleteById'
+        },
+        data
+      );
 
     });
 

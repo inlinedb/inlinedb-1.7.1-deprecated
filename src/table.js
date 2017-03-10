@@ -84,6 +84,28 @@ export class Table {
 
   }
 
+  deleteRows(filter = () => true) {
+
+    if (typeof filter === 'function') {
+
+      tableQueries.get(this).push({
+        filter,
+        type: queryTypes.DELETE_ROWS
+      });
+
+    } else {
+
+      tableQueries.get(this).push({
+        ids: [].concat(filter),
+        type: queryTypes.DELETE_BY_ID
+      });
+
+    }
+
+    return this;
+
+  }
+
   insert(...rows) {
 
     validate(this.tableSchema, ...rows);
@@ -113,7 +135,7 @@ export class Table {
 
         } else {
 
-          resolve([].concat(filter).map(id => data.rows[data.index[id]]));
+          resolve([].concat(filter).map($$idbId => data.rows[data.index[$$idbId]]));
 
         }
 
@@ -151,6 +173,32 @@ export class Table {
       });
 
     });
+
+  }
+
+  update(update, filter = () => true) {
+
+    assert(typeof update === 'function', errors.INVALID_UPDATE_FUNCTION);
+
+    if (typeof filter === 'function') {
+
+      tableQueries.get(this).push({
+        shouldUpdate: filter,
+        type: queryTypes.UPDATE,
+        update
+      });
+
+    } else {
+
+      tableQueries.get(this).push({
+        ids: [].concat(filter),
+        type: queryTypes.UPDATE_BY_ID,
+        update
+      });
+
+    }
+
+    return this;
 
   }
 
