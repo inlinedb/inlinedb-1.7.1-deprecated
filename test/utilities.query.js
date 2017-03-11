@@ -75,7 +75,10 @@ describe('Given query utility', () => {
       row: 'rowUpdate'
     });
     const data = {
-      index: [0, 1],
+      index: {
+        0: 0,
+        1: 1
+      },
       lastId: 1,
       rows: [
         {
@@ -99,7 +102,10 @@ describe('Given query utility', () => {
       const result = queryService.executeQuery(query, data, Schema);
 
       expect(result).equals({
-        index: [0, 1],
+        index: {
+          0: 0,
+          1: 1
+        },
         lastId: 1,
         rows: [
           {
@@ -126,7 +132,10 @@ describe('Given query utility', () => {
 
       expect(data.rows[1].row).equals('row2');
       expect(result).equals({
-        index: [0, 1],
+        index: {
+          0: 0,
+          1: 1
+        },
         lastId: 1,
         rows: [
           {

@@ -1,9 +1,9 @@
 import {Any, Func, match} from 'tcomb';
 import {doesTableExist, loadTable, saveTable} from './utilities/file';
+import {errors, types} from './literals';
 import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
 import assert from 'assert';
-import {errors} from './literals';
 import {getIDBInstance} from './idb';
 
 const dbNames = new WeakMap();
@@ -26,10 +26,10 @@ const sortFilterParameter = (filter, ifFunction, ifOther) => match(
 
 const executeQueries = (table, Schema, lastId) => tableQueries.get(table).reduce(
   (initialData, query) => executeQuery(query, initialData, Schema),
-  {
+  new types.QueryData({
     ...table.tableData,
     lastId
-  }
+  })
 );
 
 const loadIdbConfig = (table, tableExist, Schema) => {
@@ -189,20 +189,20 @@ export class Table {
             newData.lastId
           );
 
-          resolve({
+          resolve(new types.OutputData({
             lastId: newData.lastId,
             rows: newData.rows
-          });
+          }));
 
         };
 
         return saveTable(
           this.dbName,
           this.tableName,
-          {
+          new types.SaveData({
             index: newData.index,
             rows: newData.rows
-          },
+          }),
           err => (err ? reject : update)()
         );
 

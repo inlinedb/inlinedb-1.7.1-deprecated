@@ -1,4 +1,5 @@
 import {Number, struct} from 'tcomb';
+import {types} from '../literals';
 
 const getId = lastId => lastId + 1;
 
@@ -122,7 +123,7 @@ export const executeQuery = (query, data, Schema) => {
 
   const executor = queryExecutors[query.type];
 
-  return executor ? executor(query, data, Schema) : data;
+  return executor ? new types.QueryData(executor(query, data, Schema)) : data;
 
 };
 

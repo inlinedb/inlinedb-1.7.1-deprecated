@@ -14,6 +14,11 @@ describe('Given Table', () => {
   const tableName = 'tableName';
   const loadTableCallback = 2;
   const saveTableCallback = 3;
+  const defaultData = {
+    index: {},
+    lastId: 0,
+    rows: []
+  };
   let idbInstance,
     sandbox,
     table;
@@ -37,7 +42,7 @@ describe('Given Table', () => {
     sandbox.stub(idbService, 'getIDBInstance').returns(idbInstance);
 
     schemaService.parse.returns(Schema);
-    queryService.executeQuery.returns({});
+    queryService.executeQuery.returns(defaultData);
 
     table = new Table(dbName, tableName, Schema);
 
@@ -188,9 +193,9 @@ describe('Given Table', () => {
 
     it('should create the table with default data when failed to load table', () => {
 
-      const defaultData = {
-        index: {},
-        rows: []
+      const saveData = {
+        index: defaultData.index,
+        rows: defaultData.rows
       };
 
       fileService.loadTable.callsArgWith(loadTableCallback, true);
@@ -198,7 +203,7 @@ describe('Given Table', () => {
       table.save();
 
       sinon.assert.calledOnce(fileService.saveTable);
-      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, defaultData, sinon.match.func);
+      sinon.assert.calledWithExactly(fileService.saveTable, dbName, tableName, saveData, sinon.match.func);
 
     });
 
