@@ -24,9 +24,12 @@ const sortFilterParameter = (filter, ifFunction, ifOther) => match(
   Any, ifOther
 );
 
-const executeQueries = (table, Schema) => tableQueries.get(table).reduce(
+const executeQueries = (table, Schema, lastId) => tableQueries.get(table).reduce(
   (initialData, query) => executeQuery(query, initialData, Schema),
-  table.tableData
+  {
+    ...table.tableData,
+    lastId
+  }
 );
 
 const loadIdbConfig = (table, tableExist, Schema) => {
@@ -55,6 +58,12 @@ export class Table {
   get dbName() {
 
     return dbNames.get(this);
+
+  }
+
+  get idb() {
+
+    return idbConfig.get(this);
 
   }
 
@@ -166,7 +175,7 @@ export class Table {
 
         tableData.set(this, error ? defaultData : data);
 
-        const newData = executeQueries(this, this.tableSchema);
+        const newData = executeQueries(this, this.tableSchema, this.idb.lastId);
 
         this.revert();
 
@@ -174,14 +183,26 @@ export class Table {
 
           tableData.set(this, newData);
 
-          resolve();
+          getIDBInstance(this.dbName).updateTable(
+            this.tableName,
+            this.idb.schema,
+            newData.lastId
+          );
+
+          resolve({
+            lastId: newData.lastId,
+            rows: newData.rows
+          });
 
         };
 
         return saveTable(
           this.dbName,
           this.tableName,
-          newData,
+          {
+            index: newData.index,
+            rows: newData.rows
+          },
           err => (err ? reject : update)()
         );
 

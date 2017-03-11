@@ -24,10 +24,11 @@ describe('Given Table', () => {
 
     idbInstance = {
       createTable: sandbox.stub(),
-      data: {
-        [tableName]: Schema
-      },
-      readTable: sandbox.stub()
+      readTable: sandbox.stub().withArgs(tableName).returns({
+        lastId: 0,
+        schema: Schema
+      }),
+      updateTable: sandbox.stub()
     };
 
     sandbox.stub(fileService);
@@ -36,6 +37,7 @@ describe('Given Table', () => {
     sandbox.stub(idbService, 'getIDBInstance').returns(idbInstance);
 
     schemaService.parse.returns(Schema);
+    queryService.executeQuery.returns({});
 
     table = new Table(dbName, tableName, Schema);
 
@@ -158,6 +160,32 @@ describe('Given Table', () => {
 
     });
 
+    it('should resolve data on success', async() => {
+
+      fileService.loadTable.callsArgWith(loadTableCallback, true);
+      fileService.saveTable.callsArgWith(saveTableCallback, false);
+
+      const resolvedData = await table.save();
+
+      expect(resolvedData).equals({
+        lastId: 0,
+        rows: []
+      });
+
+    });
+
+    it('should update idb config', async() => {
+
+      fileService.loadTable.callsArgWith(loadTableCallback, true);
+      fileService.saveTable.callsArgWith(saveTableCallback, false);
+
+      await table.save();
+
+      sinon.assert.calledOnce(idbInstance.updateTable);
+      sinon.assert.calledWithExactly(idbInstance.updateTable, tableName, Schema, 0);
+
+    });
+
     it('should create the table with default data when failed to load table', () => {
 
       const defaultData = {
@@ -241,7 +269,10 @@ describe('Given Table', () => {
           rows,
           type: queryService.queryTypes.INSERT,
         },
-        initialData,
+        {
+          ...initialData,
+          lastId: 0
+        },
         Schema
       );
 
@@ -340,6 +371,10 @@ describe('Given Table', () => {
       index: {},
       rows: [{row: 'row1'}]
     };
+    const queryData = {
+      ...data,
+      lastId: 0
+    };
 
     beforeEach(() => {
 
@@ -365,7 +400,7 @@ describe('Given Table', () => {
       await table.update(update).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithExactly(queryService.executeQuery, sinon.match.object, data, Schema);
+      sinon.assert.calledWithExactly(queryService.executeQuery, sinon.match.object, queryData, Schema);
       expect(queryService.executeQuery.getCall(0).args[0].shouldUpdate()).true();
       expect(queryService.executeQuery.getCall(0).args[0]).includes({
         type: 'update',
@@ -387,7 +422,7 @@ describe('Given Table', () => {
           type: 'update',
           update
         },
-        data,
+        queryData,
         Schema
       );
 
@@ -406,7 +441,7 @@ describe('Given Table', () => {
           type: 'updateById',
           update
         },
-        data,
+        queryData,
         Schema
       );
 
@@ -425,7 +460,7 @@ describe('Given Table', () => {
           type: 'updateById',
           update
         },
-        data,
+        queryData,
         Schema
       );
 
@@ -438,6 +473,10 @@ describe('Given Table', () => {
     const data = {
       index: {},
       rows: [{row: 'row1'}]
+    };
+    const queryData = {
+      ...data,
+      lastId: 0
     };
 
     beforeEach(() => {
@@ -458,7 +497,7 @@ describe('Given Table', () => {
       await table.deleteRows().save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithExactly(queryService.executeQuery, sinon.match.object, data, Schema);
+      sinon.assert.calledWithExactly(queryService.executeQuery, sinon.match.object, queryData, Schema);
       expect(queryService.executeQuery.getCall(0).args[0].filter()).true();
       expect(queryService.executeQuery.getCall(0).args[0]).includes({type: 'deleteRows'});
 
@@ -476,7 +515,7 @@ describe('Given Table', () => {
           filter,
           type: 'deleteRows'
         },
-        data,
+        queryData,
         Schema
       );
 
@@ -494,7 +533,7 @@ describe('Given Table', () => {
           ids: [id],
           type: 'deleteById'
         },
-        data,
+        queryData,
         Schema
       );
 
@@ -512,7 +551,7 @@ describe('Given Table', () => {
           ids,
           type: 'deleteById'
         },
-        data,
+        queryData,
         Schema
       );
 
