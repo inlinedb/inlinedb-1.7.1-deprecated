@@ -29,6 +29,8 @@ export function parse(schema) {
 
   const Schema = {};
 
+  delete schema.$$idbId;
+
   Object.keys(schema).forEach(column => {
 
     const type = schema[column];

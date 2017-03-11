@@ -34,6 +34,14 @@ describe('Given Schema utility', () => {
 
     });
 
+    it('should ignore $$idbId', () => {
+
+      Schema = schemaService.parse({$$idbId: 'String'});
+
+      expect(Schema.meta.props).equals({});
+
+    });
+
     it('should allow schema in Type format', () => {
 
       Object.keys(schema).forEach(key => {
