@@ -24,6 +24,9 @@ describe('Given Table', () => {
 
     idbInstance = {
       createTable: sandbox.stub(),
+      data: {
+        [tableName]: Schema
+      },
       readTable: sandbox.stub()
     };
 

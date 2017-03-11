@@ -7,6 +7,7 @@ import {errors} from './literals';
 import {getIDBInstance} from './idb';
 
 const dbNames = new WeakMap();
+const idbConfig = new WeakMap();
 const tableData = new WeakMap();
 const tableNames = new WeakMap();
 const tableQueries = new WeakMap();
@@ -28,7 +29,7 @@ const executeQueries = (table, Schema) => tableQueries.get(table).reduce(
   table.tableData
 );
 
-const loadSchema = (table, tableExist, Schema) => {
+const loadIdbConfig = (table, tableExist, Schema) => {
 
   const tableName = table.tableName;
   const idb = getIDBInstance(table.dbName);
@@ -44,7 +45,7 @@ const loadSchema = (table, tableExist, Schema) => {
 
   }
 
-  return idb;
+  return idb.data[tableName];
 
 };
 
@@ -87,7 +88,7 @@ export class Table {
     tableData.set(this, defaultData);
     tableQueries.set(this, []);
 
-    this.idb = loadSchema(this, tableExist, Schema);
+    idbConfig.set(this, loadIdbConfig(this, tableExist, Schema));
 
   }
 
