@@ -1,3 +1,4 @@
+import {String, struct} from 'tcomb';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as queryService from '../src/utilities/query';
@@ -62,85 +63,123 @@ describe('Given query utility', () => {
 
   });
 
-  it('should execute update queries', () => {
+  describe('when executing update queries', () => {
 
-    const data = {
-      index: {1: 1},
-      rows: [
-        {
-          $$idbId: 1,
-          row: 'row1'
-        },
-        {
-          $$idbId: 2,
-          row: 'row2'
-        }
-      ]
-    };
-    const query = {
-      shouldUpdate: row => row.$$idbId === 1,
-      type: 'update',
-      update: row => ({
-        ...row,
-        row: 'rowUpdate'
-      })
-    };
-    const result = queryService.executeQuery(query, data);
+    const Schema = struct({row: String});
+    const mutativeUpdate = row => {
 
-    expect(result).equals({
-      index: {1: 1},
-      rows: [
-        {
-          $$idbId: 1,
-          row: 'rowUpdate'
-        },
-        {
-          $$idbId: 2,
-          row: 'row2'
-        }
-      ]
+      row.row = 'rowUpdate';
+
+      return row;
+
+    };
+    const update = row => ({
+      ...row,
+      row: 'rowUpdate'
     });
 
-  });
+    it('should execute by filter function', () => {
 
-  it('should execute update by id queries', () => {
+      const data = {
+        index: {1: 1},
+        rows: [
+          {
+            $$idbId: '1',
+            row: 'row1'
+          },
+          {
+            $$idbId: '2',
+            row: 'row2'
+          }
+        ]
+      };
+      const query = {
+        shouldUpdate: row => row.$$idbId === '1',
+        type: 'update',
+        update
+      };
+      const result = queryService.executeQuery(query, data, Schema);
 
-    const data = {
-      index: [0, 1],
-      rows: [
-        {
-          $$idbId: 0,
-          row: 'row1'
-        },
-        {
-          $$idbId: 1,
-          row: 'row2'
-        }
-      ]
-    };
-    const query = {
-      ids: [1],
-      type: 'updateById',
-      update: row => ({
-        ...row,
-        row: 'rowUpdate'
-      })
-    };
-    const result = queryService.executeQuery(query, data);
+      expect(result).equals({
+        index: {1: 1},
+        rows: [
+          {
+            $$idbId: '1',
+            row: 'rowUpdate'
+          },
+          {
+            $$idbId: '2',
+            row: 'row2'
+          }
+        ]
+      });
 
-    expect(data.rows[1].row).equals('row2');
-    expect(result).equals({
-      index: [0, 1],
-      rows: [
-        {
-          $$idbId: 0,
-          row: 'row1'
-        },
-        {
-          $$idbId: 1,
-          row: 'rowUpdate'
-        }
-      ]
+    });
+
+    it('should execute by ids', () => {
+
+      const data = {
+        index: [0, 1],
+        rows: [
+          {
+            $$idbId: '0',
+            row: 'row1'
+          },
+          {
+            $$idbId: '1',
+            row: 'row2'
+          }
+        ]
+      };
+      const query = {
+        ids: ['1'],
+        type: 'updateById',
+        update
+      };
+      const result = queryService.executeQuery(query, data, Schema);
+
+      expect(data.rows[1].row).equals('row2');
+      expect(result).equals({
+        index: [0, 1],
+        rows: [
+          {
+            $$idbId: '0',
+            row: 'row1'
+          },
+          {
+            $$idbId: '1',
+            row: 'rowUpdate'
+          }
+        ]
+      });
+
+    });
+
+    it('should not allow update function to mutate the row', () => {
+
+      const data = {
+        index: {1: 0},
+        rows: [
+          {
+            $$idbId: '1',
+            row: 'row1'
+          }
+        ]
+      };
+      const queryByFilter = {
+        shouldUpdate: () => true,
+        type: 'update',
+        update: mutativeUpdate
+      };
+      const queryByIds = {
+        ids: ['1'],
+        type: 'updateById',
+        update: mutativeUpdate
+      };
+
+      expect(() => queryService.executeQuery(queryByFilter, data, Schema)).throws();
+      expect(() => queryService.executeQuery(queryByIds, data, Schema)).throws();
+
     });
 
   });

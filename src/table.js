@@ -23,8 +23,8 @@ const sortFilterParameter = (filter, ifFunction, ifOther) => match(
   Any, ifOther
 );
 
-const executeQueries = table => tableQueries.get(table).reduce(
-  (initialData, query) => executeQuery(query, initialData),
+const executeQueries = (table, Schema) => tableQueries.get(table).reduce(
+  (initialData, query) => executeQuery(query, initialData, Schema),
   table.tableData
 );
 
@@ -156,7 +156,7 @@ export class Table {
 
         tableData.set(this, error ? defaultData : data);
 
-        const newData = executeQueries(this);
+        const newData = executeQueries(this, this.tableSchema);
 
         tableQueries.set(this, []);
 

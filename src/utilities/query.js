@@ -1,3 +1,5 @@
+import {String, struct} from 'tcomb';
+
 let id = 0;
 
 const nextId = () => id += 1;
@@ -10,6 +12,12 @@ const buildIndex = rows => rows.reduce((indices, row, index) => {
   return indices;
 
 }, {});
+
+const getTableSchema = Schema => Schema.extend([
+  struct({
+    $$idbId: String,
+  })
+], 'Schema');
 
 const deleteRows = (query, data) => {
 
@@ -54,13 +62,15 @@ const insert = (query, data) => {
 
 };
 
-const update = (query, data) => {
+const update = (query, data, Schema) => {
+
+  const TableSchema = getTableSchema(Schema);
 
   const rows = data.rows.map(
     row =>
       query.shouldUpdate(row) ?
-        query.update(row) :
-        row
+        query.update(new TableSchema(row)) :
+        new TableSchema(row)
   );
 
   return {
@@ -70,15 +80,17 @@ const update = (query, data) => {
 
 };
 
-const updateById = (query, data) => {
+const updateById = (query, data, Schema) => {
 
+  const TableSchema = getTableSchema(Schema);
   const rows = data.rows.slice();
 
   query.ids.forEach($$idbId => {
 
     const index = data.index[$$idbId];
+    const row = new TableSchema(rows[index]);
 
-    rows[index] = query.update(rows[index]);
+    rows[index] = new TableSchema(query.update(row));
 
   });
 
@@ -97,11 +109,11 @@ const queryExecutors = {
   updateById
 };
 
-export const executeQuery = (query, data) => {
+export const executeQuery = (query, data, Schema) => {
 
   const executor = queryExecutors[query.type];
 
-  return executor ? executor(query, data) : data;
+  return executor ? executor(query, data, Schema) : data;
 
 };
 

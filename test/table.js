@@ -245,7 +245,8 @@ describe('Given Table', () => {
           rows,
           type: queryService.queryTypes.INSERT,
         },
-        initialData
+        initialData,
+        Schema
       );
 
     });
@@ -373,15 +374,13 @@ describe('Given Table', () => {
 
       await table.update(update).save();
 
-      expect(queryService.executeQuery.getCall(0).args[0].shouldUpdate()).true();
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
-        {
-          type: 'update',
-          update
-        },
-        data
-      );
+      sinon.assert.calledWithExactly(queryService.executeQuery, sinon.match.object, data, Schema);
+      expect(queryService.executeQuery.getCall(0).args[0].shouldUpdate()).true();
+      expect(queryService.executeQuery.getCall(0).args[0]).includes({
+        type: 'update',
+        update
+      });
 
     });
 
@@ -392,13 +391,14 @@ describe('Given Table', () => {
       await table.update(update, filter).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
+      sinon.assert.calledWithExactly(queryService.executeQuery,
         {
           shouldUpdate: filter,
           type: 'update',
           update
         },
-        data
+        data,
+        Schema
       );
 
     });
@@ -410,13 +410,14 @@ describe('Given Table', () => {
       await table.update(update, id).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
+      sinon.assert.calledWithExactly(queryService.executeQuery,
         {
           ids: [id],
           type: 'updateById',
           update
         },
-        data
+        data,
+        Schema
       );
 
     });
@@ -428,13 +429,14 @@ describe('Given Table', () => {
       await table.update(update, ids).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
+      sinon.assert.calledWithExactly(queryService.executeQuery,
         {
           ids,
           type: 'updateById',
           update
         },
-        data
+        data,
+        Schema
       );
 
     });
@@ -468,14 +470,10 @@ describe('Given Table', () => {
 
       await table.deleteRows().save();
 
-      expect(queryService.executeQuery.getCall(0).args[0].filter()).true();
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
-        {
-          type: 'deleteRows'
-        },
-        data
-      );
+      sinon.assert.calledWithExactly(queryService.executeQuery, sinon.match.object, data, Schema);
+      expect(queryService.executeQuery.getCall(0).args[0].filter()).true();
+      expect(queryService.executeQuery.getCall(0).args[0]).includes({type: 'deleteRows'});
 
     });
 
@@ -486,12 +484,13 @@ describe('Given Table', () => {
       await table.deleteRows(filter).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
+      sinon.assert.calledWithExactly(queryService.executeQuery,
         {
           filter,
           type: 'deleteRows'
         },
-        data
+        data,
+        Schema
       );
 
     });
@@ -503,12 +502,13 @@ describe('Given Table', () => {
       await table.deleteRows(id).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
+      sinon.assert.calledWithExactly(queryService.executeQuery,
         {
           ids: [id],
           type: 'deleteById'
         },
-        data
+        data,
+        Schema
       );
 
     });
@@ -520,12 +520,13 @@ describe('Given Table', () => {
       await table.deleteRows(ids).save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
-      sinon.assert.calledWithMatch(queryService.executeQuery,
+      sinon.assert.calledWithExactly(queryService.executeQuery,
         {
           ids,
           type: 'deleteById'
         },
-        data
+        data,
+        Schema
       );
 
     });
