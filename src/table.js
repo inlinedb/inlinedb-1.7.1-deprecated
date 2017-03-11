@@ -1,3 +1,4 @@
+import {Any, Func, match} from 'tcomb';
 import {doesTableExist, loadTable, saveTable} from './utilities/file';
 import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
@@ -15,6 +16,12 @@ const defaultData = {
   index: {},
   rows: []
 };
+
+const sortFilterParameter = (filter, ifFunction, ifOther) => match(
+  filter,
+  Func, ifFunction,
+  Any, ifOther
+);
 
 const executeQueries = table => tableQueries.get(table).reduce(
   (initialData, query) => executeQuery(query, initialData),
@@ -86,21 +93,17 @@ export class Table {
 
   deleteRows(filter = () => true) {
 
-    if (typeof filter === 'function') {
-
-      tableQueries.get(this).push({
+    tableQueries.get(this).push(sortFilterParameter(
+      filter,
+      () => ({
         filter,
         type: queryTypes.DELETE_ROWS
-      });
-
-    } else {
-
-      tableQueries.get(this).push({
+      }),
+      () => ({
         ids: [].concat(filter),
         type: queryTypes.DELETE_BY_ID
-      });
-
-    }
+      })
+    ));
 
     return this;
 
@@ -129,13 +132,13 @@ export class Table {
 
           reject(error);
 
-        } else if (typeof filter === 'function') {
-
-          resolve(data.rows.filter(filter));
-
         } else {
 
-          resolve([].concat(filter).map($$idbId => data.rows[data.index[$$idbId]]));
+          resolve(sortFilterParameter(
+            filter,
+            () => data.rows.filter(filter),
+            () => [].concat(filter).map($$idbId => data.rows[data.index[$$idbId]])
+          ));
 
         }
 
@@ -154,6 +157,8 @@ export class Table {
         tableData.set(this, error ? defaultData : data);
 
         const newData = executeQueries(this);
+
+        tableQueries.set(this, []);
 
         const update = () => {
 
@@ -180,23 +185,19 @@ export class Table {
 
     assert(typeof update === 'function', errors.INVALID_UPDATE_FUNCTION);
 
-    if (typeof filter === 'function') {
-
-      tableQueries.get(this).push({
+    tableQueries.get(this).push(sortFilterParameter(
+      filter,
+      () => ({
         shouldUpdate: filter,
         type: queryTypes.UPDATE,
         update
-      });
-
-    } else {
-
-      tableQueries.get(this).push({
+      }),
+      () => ({
         ids: [].concat(filter),
         type: queryTypes.UPDATE_BY_ID,
         update
-      });
-
-    }
+      })
+    ));
 
     return this;
 
