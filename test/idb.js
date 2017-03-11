@@ -106,9 +106,9 @@ describe('Given IDB', () => {
         schema: Schema
       };
 
-      idb.createTable(tableName, Schema);
+      const config = idb.createTable(tableName, Schema);
 
-      expect(idb.readTable(tableName)).equals(newIdbConfig);
+      expect(config).equals(newIdbConfig);
       sinon.assert.calledOnce(fileService.saveIDB);
       sinon.assert.calledWithExactly(fileService.saveIDB, dbName, {[tableName]: newIdbConfig});
 

@@ -35,6 +35,8 @@ class IDB {
       config
     );
 
+    return this.readTable(tableName);
+
   }
 
   dropTable(tableName) {
