@@ -1,5 +1,6 @@
 import fs from 'fs';
 import {mkdirp} from 'mkdirp';
+import rimraf from 'rimraf';
 
 const getIDBLocation = dbName => `./${dbName}/.idb`;
 const getTableLocation = (dbName, tableName) => `./${dbName}/${tableName}.table`;
@@ -43,6 +44,9 @@ export const saveIDB = (dbName, idbData) => {
   fs.writeFileSync(getIDBLocation(dbName), JSON.stringify(idbData));
 
 };
+
+export const deleteTable = (dbName, tableName) =>
+  rimraf.sync(getTableLocation(dbName, tableName));
 
 export const loadTable = (dbName, tableName, done) =>
   fs.readFile(

@@ -29,17 +29,22 @@ describe('Given Table', () => {
 
     idbInstance = {
       createTable: sandbox.stub(),
-      readTable: sandbox.stub().withArgs(tableName).returns({
-        lastId: 0,
-        schema: Schema
-      }),
+      dropTable: sandbox.stub(),
+      readTable: sandbox.stub()
+        .withArgs(tableName)
+        .returns({
+          lastId: 0,
+          schema: Schema
+        }),
       updateTable: sandbox.stub()
     };
 
     sandbox.stub(fileService);
     sandbox.stub(queryService);
     sandbox.stub(schemaService);
-    sandbox.stub(idbService, 'getIDBInstance').returns(idbInstance);
+    sandbox.stub(idbService, 'getIDBInstance')
+      .withArgs(dbName)
+      .returns(idbInstance);
 
     schemaService.parse.returns(Schema);
     queryService.executeQuery.returns(defaultData);
@@ -583,6 +588,34 @@ describe('Given Table', () => {
         .save();
 
       sinon.assert.calledOnce(queryService.executeQuery);
+
+    });
+
+  });
+
+  describe('when dropping', () => {
+
+    it('should delete the table', () => {
+
+      table.drop();
+
+      sinon.assert.calledOnce(idbInstance.dropTable);
+      sinon.assert.calledWithExactly(idbInstance.dropTable, tableName);
+
+      sinon.assert.calledOnce(fileService.deleteTable);
+      sinon.assert.calledWithExactly(fileService.deleteTable, dbName, tableName);
+
+    });
+
+    it('should allow static call', () => {
+
+      Table.drop(dbName, tableName);
+
+      sinon.assert.calledOnce(idbInstance.dropTable);
+      sinon.assert.calledWithExactly(idbInstance.dropTable, tableName);
+
+      sinon.assert.calledOnce(fileService.deleteTable);
+      sinon.assert.calledWithExactly(fileService.deleteTable, dbName, tableName);
 
     });
 

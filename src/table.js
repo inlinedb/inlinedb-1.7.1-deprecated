@@ -1,5 +1,5 @@
 import {Any, Func, match} from 'tcomb';
-import {doesTableExist, loadTable, saveTable} from './utilities/file';
+import {deleteTable, doesTableExist, loadTable, saveTable} from './utilities/file';
 import {errors, types} from './literals';
 import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
@@ -54,6 +54,14 @@ const loadIdbConfig = (table, tableExist, Schema) => {
 };
 
 export class Table {
+
+  static drop(dbName, tableName) {
+
+    getIDBInstance(dbName).dropTable(tableName);
+
+    deleteTable(dbName, tableName);
+
+  }
 
   get dbName() {
 
@@ -117,6 +125,12 @@ export class Table {
     ));
 
     return this;
+
+  }
+
+  drop() {
+
+    Table.drop(this.dbName, this.tableName);
 
   }
 

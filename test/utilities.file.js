@@ -1,6 +1,7 @@
 import {expect} from 'code';
 import fs from 'fs';
 import mkdirp from 'mkdirp';
+import rimraf from 'rimraf';
 import sinon from 'sinon';
 import * as fileService from '../src/utilities/file';
 
@@ -28,6 +29,7 @@ describe('Given file utility', () => {
     sandbox.stub(fs, 'writeFile');
     sandbox.stub(fs, 'writeFileSync');
     sandbox.stub(mkdirp, 'mkdirp');
+    sandbox.stub(rimraf, 'sync');
 
   });
 
@@ -91,6 +93,19 @@ describe('Given file utility', () => {
 
       sinon.assert.calledOnce(done);
       sinon.assert.calledWithExactly(done, null, data);
+
+    });
+
+  });
+
+  describe('when deleting table', () => {
+
+    it('should remove the table from system', () => {
+
+      fileService.deleteTable(dbName, tableName);
+
+      sinon.assert.calledOnce(rimraf.sync);
+      sinon.assert.calledWithExactly(rimraf.sync, tablePath);
 
     });
 
