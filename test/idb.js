@@ -8,13 +8,21 @@ describe('Given IDB', () => {
   const Schema = {schema: 'schema'};
   const dbName = 'dbName';
   const tableName = 'tableName';
-  let sandbox;
+  let idbData,
+    sandbox;
 
   beforeEach(() => {
 
+    idbData = {
+      [tableName]: {
+        lastId: 1,
+        schema: Schema
+      }
+    };
+
     sandbox = sinon.sandbox.create();
 
-    sandbox.stub(fileService, 'loadIDB').returns({});
+    sandbox.stub(fileService, 'loadIDB').returns(Object.assign({}, idbData));
     sandbox.stub(fileService, 'saveIDB');
 
   });
@@ -44,7 +52,7 @@ describe('Given IDB', () => {
 
     expect(idbInstance1).equals(getIDBInstance(dbName1));
     expect(idbInstance2).equals(getIDBInstance(dbName2));
-    expect(idbInstance1).not.equals(getIDBInstance(dbName2));
+    expect(idbInstance1).not.shallow.equals(getIDBInstance(dbName2));
 
     closeIDB(dbName1);
     closeIDB(dbName2);
@@ -64,13 +72,9 @@ describe('Given IDB', () => {
 
     it('should have resolved data if idb exists', () => {
 
-      const idbData = {[tableName]: Schema};
-
-      fileService.loadIDB.returns(idbData);
-
       const idb = getIDBInstance(dbName);
 
-      expect(idb.data).equals(idbData);
+      expect(idb.readTable(tableName)).equals(idbData[tableName]);
 
     });
 
@@ -80,14 +84,17 @@ describe('Given IDB', () => {
 
     it('should add it to idb and save', () => {
 
-      const idbData = {[tableName]: Schema};
       const idb = getIDBInstance(dbName);
+      const newIdbConfig = {
+        lastId: 0,
+        schema: Schema
+      };
 
       idb.createTable(tableName, Schema);
 
-      expect(idb.data).equals(idbData);
+      expect(idb.readTable(tableName)).equals(newIdbConfig);
       sinon.assert.calledOnce(fileService.saveIDB);
-      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, idbData);
+      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, {[tableName]: newIdbConfig});
 
     });
 
@@ -97,14 +104,11 @@ describe('Given IDB', () => {
 
     it('should remove it from idb and save', () => {
 
-      const idbData = {[tableName]: Schema};
       const idb = getIDBInstance(dbName);
-
-      idb.data = idbData;
 
       idb.dropTable(tableName);
 
-      expect(idb.data).equals({});
+      expect(idb.readTable(tableName)).undefined();
       sinon.assert.calledOnce(fileService.saveIDB);
       sinon.assert.calledWithExactly(fileService.saveIDB, dbName, {});
 
@@ -116,14 +120,19 @@ describe('Given IDB', () => {
 
     it('should update the idb and save', () => {
 
-      const idbData = {[tableName]: Schema};
       const idb = getIDBInstance(dbName);
+      const lastId = 2;
+      const schema = {newSchema: 'String'};
+      const updatedIdbConfig = {
+        lastId,
+        schema
+      };
 
-      idb.updateTable(tableName, Schema);
+      idb.updateTable(tableName, schema, lastId);
 
-      expect(idb.data).equals(idbData);
+      expect(idb.readTable(tableName)).equals(updatedIdbConfig);
       sinon.assert.calledOnce(fileService.saveIDB);
-      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, idbData);
+      sinon.assert.calledWithExactly(fileService.saveIDB, dbName, {[tableName]: updatedIdbConfig});
 
     });
 
@@ -135,9 +144,10 @@ describe('Given IDB', () => {
 
       const idb = getIDBInstance(dbName);
 
-      idb.data = {[tableName]: Schema};
-
-      expect(idb.readTable(tableName)).equals(Schema);
+      expect(idb.readTable(tableName)).equals({
+        lastId: 1,
+        schema: Schema
+      });
 
     });
 

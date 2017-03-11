@@ -83,16 +83,25 @@ describe('Given Table', () => {
 
     });
 
+    it('should read table schema', () => {
+
+      sinon.assert.calledOnce(idbInstance.readTable);
+      sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
+
+    });
+
     describe('when table exists', () => {
 
-      const storedSchema = {
-        stored: 'String'
+      const idbConfig = {
+        schema: {
+          stored: 'String'
+        }
       };
 
       beforeEach(() => {
 
         fileService.doesTableExist.returns(true);
-        idbInstance.readTable.returns(storedSchema);
+        idbInstance.readTable.returns(idbConfig);
 
       });
 
@@ -102,27 +111,16 @@ describe('Given Table', () => {
 
       });
 
-      it('should read table schema if table exists', () => {
-
-        idbInstance.createTable.reset();
-        idbInstance.readTable.reset();
-
-        new Table(dbName, tableName);
-
-        sinon.assert.notCalled(idbInstance.createTable);
-        sinon.assert.calledOnce(idbInstance.readTable);
-        sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
-
-      });
-
       it('should parse stored schema', () => {
 
+        idbInstance.createTable.reset();
         schemaService.parse.reset();
 
         new Table(dbName, tableName);
 
+        sinon.assert.notCalled(idbInstance.createTable);
         sinon.assert.calledOnce(schemaService.parse);
-        sinon.assert.calledWithExactly(schemaService.parse, storedSchema);
+        sinon.assert.calledWithExactly(schemaService.parse, idbConfig.schema);
 
       });
 
@@ -130,7 +128,6 @@ describe('Given Table', () => {
 
     it('should create table schema if table does not exist', () => {
 
-      sinon.assert.notCalled(idbInstance.readTable);
       sinon.assert.calledOnce(idbInstance.createTable);
       sinon.assert.calledWithExactly(idbInstance.createTable, tableName, Schema);
 

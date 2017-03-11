@@ -33,10 +33,11 @@ const loadIdbConfig = (table, tableExist, Schema) => {
 
   const tableName = table.tableName;
   const idb = getIDBInstance(table.dbName);
+  const config = idb.readTable(tableName);
 
   if (tableExist) {
 
-    tableSchemas.set(table, parse(idb.readTable(tableName)));
+    tableSchemas.set(table, parse(config.schema));
 
   } else {
 
@@ -45,7 +46,7 @@ const loadIdbConfig = (table, tableExist, Schema) => {
 
   }
 
-  return idb.data[tableName];
+  return config;
 
 };
 

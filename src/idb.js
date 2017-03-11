@@ -1,6 +1,7 @@
 import {loadIDB, saveIDB} from './utilities/file';
 
 const dbNames = new WeakMap();
+const idbConfigs = new WeakMap();
 const idbInstances = {};
 
 class IDB {
@@ -13,43 +14,50 @@ class IDB {
 
   constructor(dbName) {
 
-    this.data = loadIDB(dbName);
+    idbConfigs.set(this, loadIDB(dbName));
 
     dbNames.set(this, dbName);
 
   }
 
-  createTable(tableName, Schema) {
+  createTable(tableName, schema, lastId = 0) {
 
-    this.data[tableName] = Schema;
+    const config = idbConfigs.get(this);
+
+    config[tableName] = {
+      lastId,
+      schema
+    };
 
     saveIDB(
       this.dbName,
-      this.data
+      config
     );
 
   }
 
   dropTable(tableName) {
 
-    delete this.data[tableName];
+    const config = idbConfigs.get(this);
+
+    delete config[tableName];
 
     saveIDB(
       this.dbName,
-      this.data
+      config
     );
 
   }
 
   readTable(tableName) {
 
-    return this.data[tableName];
+    return idbConfigs.get(this)[tableName];
 
   }
 
-  updateTable(tableName, Schema) {
+  updateTable(tableName, schema, lastId) {
 
-    return this.createTable(tableName, Schema);
+    return this.createTable(tableName, schema, lastId);
 
   }
 
