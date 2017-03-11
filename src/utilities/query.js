@@ -1,9 +1,6 @@
-import {String, struct} from 'tcomb';
+import {Number, struct} from 'tcomb';
 
-let id = 0;
-
-const nextId = () => id += 1;
-const getId = () => `${new Date().getTime() + nextId()}`;
+const getId = lastId => lastId + 1;
 
 const buildIndex = rows => rows.reduce((indices, row, index) => {
 
@@ -14,7 +11,7 @@ const buildIndex = rows => rows.reduce((indices, row, index) => {
 }, {});
 
 const getTableSchema = Schema => struct({
-  $$idbId: String,
+  $$idbId: Number,
 }).extend([Schema], 'Schema');
 
 const deleteRows = (query, data) => {
@@ -23,6 +20,7 @@ const deleteRows = (query, data) => {
 
   return {
     index: buildIndex(rows),
+    lastId: data.lastId,
     rows
   };
 
@@ -39,6 +37,7 @@ const deleteById = (query, data) => {
 
   return {
     index: buildIndex(rows),
+    lastId: data.lastId,
     rows
   };
 
@@ -46,15 +45,24 @@ const deleteById = (query, data) => {
 
 const insert = (query, data) => {
 
+  let lastId = data.lastId;
+
   const rows = data.rows.concat(
-    query.rows.map(row => ({
-      $$idbId: getId(),
-      ...row
-    }))
+    query.rows.map(row => {
+
+      lastId = getId(lastId);
+
+      return {
+        $$idbId: lastId,
+        ...row
+      };
+
+    })
   );
 
   return {
     index: buildIndex(rows),
+    lastId,
     rows
   };
 
@@ -74,6 +82,7 @@ const update = (query, data, Schema) => {
 
   return {
     index: data.index,
+    lastId: data.lastId,
     rows
   };
 
@@ -95,6 +104,7 @@ const updateById = (query, data, Schema) => {
 
   return {
     index: data.index,
+    lastId: data.lastId,
     rows
   };
 

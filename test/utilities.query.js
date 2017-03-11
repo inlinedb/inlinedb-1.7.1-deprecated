@@ -1,6 +1,5 @@
 import {String, struct} from 'tcomb';
 import {expect} from 'code';
-import sinon from 'sinon';
 import * as queryService from '../src/utilities/query';
 
 describe('Given query utility', () => {
@@ -27,9 +26,9 @@ describe('Given query utility', () => {
 
   it('should execute insert queries', () => {
 
-    const clock = sinon.useFakeTimers();
     const data = {
       index: {},
+      lastId: 0,
       rows: []
     };
     const query = {
@@ -40,26 +39,24 @@ describe('Given query utility', () => {
       type: 'insert'
     };
     const result = queryService.executeQuery(query, data);
-    const time = new Date().getTime();
 
     expect(result).equals({
       index: {
-        [time + 1]: 0,
-        [time + 2]: 1
+        [data.lastId + 1]: 0,
+        [data.lastId + 2]: 1
       },
+      lastId: 2,
       rows: [
         {
-          $$idbId: `${time + 1}`,
+          $$idbId: data.lastId + 1,
           row: 'row1'
         },
         {
-          $$idbId: `${time + 2}`,
+          $$idbId: data.lastId + 2,
           row: 'row2'
         }
       ]
     });
-
-    clock.restore();
 
   });
 
@@ -77,38 +74,40 @@ describe('Given query utility', () => {
       ...row,
       row: 'rowUpdate'
     });
+    const data = {
+      index: [0, 1],
+      lastId: 1,
+      rows: [
+        {
+          $$idbId: 0,
+          row: 'row1'
+        },
+        {
+          $$idbId: 1,
+          row: 'row2'
+        }
+      ]
+    };
 
     it('should execute by filter function', () => {
 
-      const data = {
-        index: {1: 1},
-        rows: [
-          {
-            $$idbId: '1',
-            row: 'row1'
-          },
-          {
-            $$idbId: '2',
-            row: 'row2'
-          }
-        ]
-      };
       const query = {
-        shouldUpdate: row => row.$$idbId === '1',
+        shouldUpdate: row => row.$$idbId === 0,
         type: 'update',
         update
       };
       const result = queryService.executeQuery(query, data, Schema);
 
       expect(result).equals({
-        index: {1: 1},
+        index: [0, 1],
+        lastId: 1,
         rows: [
           {
-            $$idbId: '1',
+            $$idbId: 0,
             row: 'rowUpdate'
           },
           {
-            $$idbId: '2',
+            $$idbId: 1,
             row: 'row2'
           }
         ]
@@ -118,21 +117,8 @@ describe('Given query utility', () => {
 
     it('should execute by ids', () => {
 
-      const data = {
-        index: [0, 1],
-        rows: [
-          {
-            $$idbId: '0',
-            row: 'row1'
-          },
-          {
-            $$idbId: '1',
-            row: 'row2'
-          }
-        ]
-      };
       const query = {
-        ids: ['1'],
+        ids: [1],
         type: 'updateById',
         update
       };
@@ -141,13 +127,14 @@ describe('Given query utility', () => {
       expect(data.rows[1].row).equals('row2');
       expect(result).equals({
         index: [0, 1],
+        lastId: 1,
         rows: [
           {
-            $$idbId: '0',
+            $$idbId: 0,
             row: 'row1'
           },
           {
-            $$idbId: '1',
+            $$idbId: 1,
             row: 'rowUpdate'
           }
         ]
@@ -157,22 +144,13 @@ describe('Given query utility', () => {
 
     it('should not allow update function to mutate the row', () => {
 
-      const data = {
-        index: {1: 0},
-        rows: [
-          {
-            $$idbId: '1',
-            row: 'row1'
-          }
-        ]
-      };
       const queryByFilter = {
         shouldUpdate: () => true,
         type: 'update',
         update: mutativeUpdate
       };
       const queryByIds = {
-        ids: ['1'],
+        ids: [1],
         type: 'updateById',
         update: mutativeUpdate
       };
@@ -184,43 +162,11 @@ describe('Given query utility', () => {
 
   });
 
-  it('should execute delete queries', () => {
-
-    const data = {
-      index: {1: 1},
-      rows: [
-        {
-          $$idbId: 1,
-          row: 'row1'
-        },
-        {
-          $$idbId: 2,
-          row: 'row2'
-        }
-      ]
-    };
-    const query = {
-      filter: row => row.$$idbId > 1,
-      type: 'deleteRows'
-    };
-    const result = queryService.executeQuery(query, data);
-
-    expect(result).equals({
-      index: {1: 0},
-      rows: [
-        {
-          $$idbId: 1,
-          row: 'row1'
-        }
-      ]
-    });
-
-  });
-
-  it('should execute delete by id queries', () => {
+  describe('when executing delete queries', () => {
 
     const data = {
       index: [0, 1, 2],
+      lastId: 2,
       rows: [
         {
           $$idbId: 0,
@@ -236,23 +182,50 @@ describe('Given query utility', () => {
         }
       ]
     };
-    const query = {
-      ids: [2, 0],
-      type: 'deleteById'
-    };
-    const rowsLength = 3;
-    const result = queryService.executeQuery(query, data);
 
-    expect(data.rows).length(rowsLength);
-    expect(data.index).length(rowsLength);
-    expect(result).equals({
-      index: {1: 0},
-      rows: [
-        {
-          $$idbId: 1,
-          row: 'row2'
-        }
-      ]
+    it('should execute by filter function', () => {
+
+      const query = {
+        filter: row => row.$$idbId > 0,
+        type: 'deleteRows'
+      };
+      const result = queryService.executeQuery(query, data);
+
+      expect(result).equals({
+        index: {0: 0},
+        lastId: 2,
+        rows: [
+          {
+            $$idbId: 0,
+            row: 'row1'
+          }
+        ]
+      });
+
+    });
+
+    it('should execute by ids', () => {
+
+      const query = {
+        ids: [2, 0],
+        type: 'deleteById'
+      };
+      const rowsLength = 3;
+      const result = queryService.executeQuery(query, data);
+
+      expect(data.rows).length(rowsLength);
+      expect(data.index).length(rowsLength);
+      expect(result).equals({
+        index: {1: 0},
+        lastId: 2,
+        rows: [
+          {
+            $$idbId: 1,
+            row: 'row2'
+          }
+        ]
+      });
+
     });
 
   });
