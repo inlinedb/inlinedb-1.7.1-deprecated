@@ -28,7 +28,12 @@ describe('Given Table', () => {
     sandbox = sinon.sandbox.create();
 
     idbInstance = {
-      createTable: sandbox.stub(),
+      createTable: sandbox.stub()
+        .withArgs(tableName, Schema)
+        .returns({
+          lastId: 0,
+          schema: Schema
+        }),
       dropTable: sandbox.stub(),
       readTable: sandbox.stub()
         .withArgs(tableName)
@@ -95,16 +100,10 @@ describe('Given Table', () => {
 
     });
 
-    it('should read table schema', () => {
-
-      sinon.assert.calledOnce(idbInstance.readTable);
-      sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
-
-    });
-
     describe('when table exists', () => {
 
       const idbConfig = {
+        lastId: 2,
         schema: {
           stored: 'String'
         }
@@ -120,6 +119,19 @@ describe('Given Table', () => {
       it('should not throw any error if table exists and Schema is not given', () => {
 
         expect(() => new Table(dbName, tableName)).not.throws();
+
+      });
+
+      it('should read table schema if table exists', () => {
+
+        idbInstance.createTable.reset();
+        idbInstance.readTable.reset();
+
+        new Table(dbName, tableName);
+
+        sinon.assert.notCalled(idbInstance.createTable);
+        sinon.assert.calledOnce(idbInstance.readTable);
+        sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
 
       });
 

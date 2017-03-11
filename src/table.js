@@ -36,20 +36,21 @@ const loadIdbConfig = (table, tableExist, Schema) => {
 
   const tableName = table.tableName;
   const idb = getIDBInstance(table.dbName);
-  const config = idb.readTable(tableName);
+  let config;
 
   if (tableExist) {
 
+    config = idb.readTable(tableName);
     tableSchemas.set(table, parse(config.schema));
 
   } else {
 
-    idb.createTable(tableName, Schema);
+    config = idb.createTable(tableName, Schema);
     tableSchemas.set(table, parse(Schema));
 
   }
 
-  return config;
+  return new types.IDBConfig(config);
 
 };
 
