@@ -1,4 +1,5 @@
 import {loadIDB, saveIDB} from './utilities/file';
+import {types} from './literals';
 
 const dbNames = new WeakMap();
 const idbConfigs = new WeakMap();
@@ -24,10 +25,10 @@ class IDB {
 
     const config = idbConfigs.get(this);
 
-    config[tableName] = {
+    config[tableName] = new types.IDBConfig({
       lastId,
       schema
-    };
+    });
 
     saveIDB(
       this.dbName,

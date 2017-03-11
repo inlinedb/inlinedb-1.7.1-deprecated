@@ -39,10 +39,9 @@ describe('Given IDB', () => {
 
     const dbName1 = 'dbName1';
     const dbName2 = 'dbName2';
+    const sameTable = {tableName};
 
-    fileService.loadIDB
-      .onFirstCall().returns({})
-      .onSecondCall().returns({});
+    fileService.loadIDB.returns(sameTable);
 
     const idbInstance1 = getIDBInstance(dbName1);
     const idbInstance2 = getIDBInstance(dbName2);
@@ -50,12 +49,29 @@ describe('Given IDB', () => {
     idbInstance1.createTable('tableName1', {});
     idbInstance2.createTable('tableName2', {});
 
-    expect(idbInstance1).equals(getIDBInstance(dbName1));
-    expect(idbInstance2).equals(getIDBInstance(dbName2));
+    expect(idbInstance1).shallow.equals(getIDBInstance(dbName1));
+    expect(idbInstance1).shallow.equals(getIDBInstance(dbName1));
+    expect(idbInstance2).shallow.equals(getIDBInstance(dbName2));
+
+    expect(idbInstance1).equals(getIDBInstance(dbName2));
+    expect(idbInstance2).equals(getIDBInstance(dbName1));
     expect(idbInstance1).not.shallow.equals(getIDBInstance(dbName2));
 
     closeIDB(dbName1);
     closeIDB(dbName2);
+
+  });
+
+  it('should destroy the instance when closed', () => {
+
+    const idbInstanceBeforeClosing = getIDBInstance(dbName);
+
+    closeIDB(dbName);
+
+    const idbInstanceAfterClosing = getIDBInstance(dbName);
+
+    expect(idbInstanceBeforeClosing).not.shallow.equals(idbInstanceAfterClosing);
+    expect(idbInstanceBeforeClosing).equals(idbInstanceAfterClosing);
 
   });
 

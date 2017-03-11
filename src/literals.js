@@ -1,5 +1,10 @@
 import t from 'tcomb';
 
+const IDBConfig = t.struct({
+  lastId: t.Number,
+  schema: t.Object
+});
+
 const OutputData = t.struct({
   lastId: t.Number,
   rows: t.Array
@@ -26,6 +31,7 @@ export const errors = {
 };
 
 export const types = {
+  IDBConfig,
   OutputData,
   QueryData,
   SaveData
