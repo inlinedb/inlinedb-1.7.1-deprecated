@@ -373,6 +373,7 @@ describe('Given Table', () => {
 
       await table.update(update).save();
 
+      expect(queryService.executeQuery.getCall(0).args[0].shouldUpdate()).true();
       sinon.assert.calledOnce(queryService.executeQuery);
       sinon.assert.calledWithMatch(queryService.executeQuery,
         {
@@ -467,6 +468,7 @@ describe('Given Table', () => {
 
       await table.deleteRows().save();
 
+      expect(queryService.executeQuery.getCall(0).args[0].filter()).true();
       sinon.assert.calledOnce(queryService.executeQuery);
       sinon.assert.calledWithMatch(queryService.executeQuery,
         {
