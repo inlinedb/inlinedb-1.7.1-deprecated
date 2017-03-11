@@ -12,6 +12,8 @@ describe('Given Table', () => {
   const Schema = {foo: 'String'};
   const dbName = 'dbName';
   const tableName = 'tableName';
+  const loadTableCallback = 2;
+  const saveTableCallback = 3;
   let idbInstance,
     sandbox,
     table;
@@ -135,8 +137,6 @@ describe('Given Table', () => {
 
   describe('when saving', () => {
 
-    const saveTableCallback = 3;
-
     beforeEach(() => {
 
       fileService.saveTable.callsArgWith(saveTableCallback, false);
@@ -160,7 +160,6 @@ describe('Given Table', () => {
 
     it('should create the table with default data when failed to load table', () => {
 
-      const loadTableCallback = 2;
       const defaultData = {
         index: {},
         rows: []
@@ -177,7 +176,6 @@ describe('Given Table', () => {
 
     it('should create the table with loaded data', () => {
 
-      const loadTableCallback = 2;
       const data = {
         index: {},
         rows: [{row: 'row1'}]
@@ -194,7 +192,6 @@ describe('Given Table', () => {
 
     it('should reject if there is an error when saving', async() => {
 
-      const loadTableCallback = 2;
       let rejected = false;
 
       fileService.loadTable.callsArgWith(loadTableCallback, true);
@@ -226,7 +223,6 @@ describe('Given Table', () => {
 
     it('should execute the insert query on save', () => {
 
-      const loadTableCallback = 2;
       const initialData = {
         index: {},
         rows: []
@@ -283,8 +279,6 @@ describe('Given Table', () => {
 
     describe('when successfully loaded table', () => {
 
-      const loadTableCallback = 2;
-
       beforeEach(() => fileService.loadTable.callsArgWith(loadTableCallback, false, data));
 
       it('should return all rows when there is no filter', async() => {
@@ -325,7 +319,6 @@ describe('Given Table', () => {
 
       it('should reject', async() => {
 
-        const loadTableCallback = 2;
         let rejected = false;
 
         fileService.loadTable.callsArgWith(loadTableCallback, true);
@@ -349,9 +342,6 @@ describe('Given Table', () => {
     };
 
     beforeEach(() => {
-
-      const saveTableCallback = 3;
-      const loadTableCallback = 2;
 
       fileService.loadTable.callsArgWith(loadTableCallback, false, data);
       fileService.saveTable.callsArgWith(saveTableCallback, false, data);
@@ -452,9 +442,6 @@ describe('Given Table', () => {
 
     beforeEach(() => {
 
-      const saveTableCallback = 3;
-      const loadTableCallback = 2;
-
       fileService.loadTable.callsArgWith(loadTableCallback, false, data);
       fileService.saveTable.callsArgWith(saveTableCallback, false, data);
 
@@ -528,6 +515,30 @@ describe('Given Table', () => {
         data,
         Schema
       );
+
+    });
+
+  });
+
+  describe('when reverting', () => {
+
+    it('should clear out queued queries', async() => {
+
+      fileService.loadTable.callsArgWith(loadTableCallback, true);
+      fileService.saveTable.callsArgWith(saveTableCallback, false);
+
+      await table
+        .insert({foo: 'bar'})
+        .revert()
+        .save();
+
+      sinon.assert.notCalled(queryService.executeQuery);
+
+      await table
+        .insert({foo: 'bar'})
+        .save();
+
+      sinon.assert.calledOnce(queryService.executeQuery);
 
     });
 

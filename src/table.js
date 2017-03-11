@@ -148,6 +148,14 @@ export class Table {
 
   }
 
+  revert() {
+
+    tableQueries.set(this, []);
+
+    return this;
+
+  }
+
   save() {
 
     return new Promise((resolve, reject) => {
@@ -158,7 +166,7 @@ export class Table {
 
         const newData = executeQueries(this, this.tableSchema);
 
-        tableQueries.set(this, []);
+        this.revert();
 
         const update = () => {
 
