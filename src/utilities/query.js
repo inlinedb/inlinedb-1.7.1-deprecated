@@ -76,7 +76,7 @@ const update = (query, data, Schema) => {
   const rows = data.rows.map(
     row => new TableSchema(
       query.shouldUpdate(row) ?
-        query.update(new TableSchema(row)) :
+        query.update(Object.freeze(row)) :
         row
     )
   );
