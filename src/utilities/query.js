@@ -13,11 +13,9 @@ const buildIndex = rows => rows.reduce((indices, row, index) => {
 
 }, {});
 
-const getTableSchema = Schema => Schema.extend([
-  struct({
-    $$idbId: String,
-  })
-], 'Schema');
+const getTableSchema = Schema => struct({
+  $$idbId: String,
+}).extend([Schema], 'Schema');
 
 const deleteRows = (query, data) => {
 
@@ -67,10 +65,11 @@ const update = (query, data, Schema) => {
   const TableSchema = getTableSchema(Schema);
 
   const rows = data.rows.map(
-    row =>
+    row => new TableSchema(
       query.shouldUpdate(row) ?
         query.update(new TableSchema(row)) :
-        new TableSchema(row)
+        row
+    )
   );
 
   return {
