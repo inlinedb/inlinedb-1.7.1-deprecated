@@ -100,21 +100,34 @@ describe('Given Database', () => {
 
   describe('when dropping a table', () => {
 
-    it('should instantiate Table with empty schema to get its instance and drop it', () => {
+    let tableInstance,
+      returnValue;
 
-      const tableInstance = {
+    beforeEach(() => {
+
+      tableInstance = {
         drop: sandbox.stub()
       };
 
       table.Table.withArgs(dbName, tableName, {}).returns(tableInstance);
 
-      database.dropTable(tableName);
+      returnValue = database.dropTable(tableName);
+
+    });
+
+    it('should instantiate Table with empty schema to get its instance and drop it', () => {
 
       sinon.assert.calledOnce(table.Table);
       sinon.assert.calledWithNew(table.Table);
       sinon.assert.calledWithExactly(table.Table, dbName, tableName, {});
       sinon.assert.calledOnce(tableInstance.drop);
       sinon.assert.calledWithExactly(tableInstance.drop);
+
+    });
+
+    it('should return database', () => {
+
+      expect(returnValue).equals(database);
 
     });
 

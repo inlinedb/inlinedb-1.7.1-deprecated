@@ -31,6 +31,8 @@ export class Database {
 
     new Table(this.dbName, tableName, {}).drop();
 
+    return this;
+
   }
 
   list() {
