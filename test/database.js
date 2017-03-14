@@ -27,6 +27,7 @@ describe('Given Database', () => {
 
     sandbox.stub(fileService, 'deleteDatabase');
     sandbox.stub(table, 'Table');
+    sandbox.stub(idbService, 'closeIDB');
     sandbox.stub(idbService, 'getIDBInstance')
       .withArgs(dbName)
       .returns(idbInstance);
@@ -137,12 +138,19 @@ describe('Given Database', () => {
 
   describe('when dropping database', () => {
 
-    it('should delete the database', () => {
+    beforeEach(() => database.drop());
 
-      database.drop();
+    it('should delete the database', () => {
 
       sinon.assert.calledOnce(fileService.deleteDatabase);
       sinon.assert.calledWithExactly(fileService.deleteDatabase, dbName);
+
+    });
+
+    it('should close idb', () => {
+
+      sinon.assert.calledOnce(idbService.closeIDB);
+      sinon.assert.calledWithExactly(idbService.closeIDB, dbName);
 
     });
 

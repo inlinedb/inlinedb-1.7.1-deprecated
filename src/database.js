@@ -1,8 +1,8 @@
+import {closeIDB, getIDBInstance} from './utilities/idb';
 import {Table} from './table';
 import assert from 'assert';
 import {deleteDatabase} from './utilities/file';
 import {errors} from './literals';
-import {getIDBInstance} from './utilities/idb';
 
 const dbNames = new WeakMap();
 
@@ -31,6 +31,7 @@ export class Database {
   drop() {
 
     deleteDatabase(this.dbName);
+    closeIDB(this.dbName);
 
   }
 
