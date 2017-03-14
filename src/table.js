@@ -3,6 +3,7 @@ import {deleteTable, doesTableExist, loadTable, saveTable} from './utilities/fil
 import {errors, types} from './literals';
 import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
+import {alterColumn} from './utilities/column';
 import assert from 'assert';
 import {getIDBInstance} from './idb';
 
@@ -108,6 +109,17 @@ export class Table {
     tableQueries.set(this, []);
 
     idbConfig.set(this, loadIdbConfig(this, tableExist, Schema));
+
+  }
+
+  addColumn(column, type, defaultValue) {
+
+    assert(defaultValue !== undefined, errors.INVALID_DEFAULT_VALUE);
+
+    return alterColumn(this, tableSchemas, column, type, row => ({
+      ...row,
+      [column]: defaultValue
+    }));
 
   }
 

@@ -2,6 +2,7 @@ import {Table} from '../src/table';
 import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
+import * as columnService from '../src/utilities/column';
 import * as fileService from '../src/utilities/file';
 import * as idbService from '../src/idb';
 import * as queryService from '../src/utilities/query';
@@ -22,6 +23,16 @@ describe('Given Table', () => {
   let idbInstance,
     sandbox,
     table;
+
+  const getTableSchemas = () => {
+
+    const tableSchemas = new WeakMap();
+
+    tableSchemas.set(table, schemaService.parse(Schema));
+
+    return tableSchemas;
+
+  };
 
   beforeEach(() => {
 
@@ -44,6 +55,7 @@ describe('Given Table', () => {
       updateTable: sandbox.stub()
     };
 
+    sandbox.stub(columnService);
     sandbox.stub(fileService);
     sandbox.stub(queryService);
     sandbox.stub(schemaService);
@@ -628,6 +640,53 @@ describe('Given Table', () => {
 
       sinon.assert.calledOnce(fileService.deleteTable);
       sinon.assert.calledWithExactly(fileService.deleteTable, dbName, tableName);
+
+    });
+
+  });
+
+  describe('when adding columns', () => {
+
+    const column = 'column';
+    const defaultValue = 'defaultValue';
+    const type = 'Type';
+
+    it('should throw if default value is not given', () => {
+
+      expect(() => table.addColumn(column, type)).throws(errors.INVALID_DEFAULT_VALUE);
+
+    });
+
+    it('should alter column', () => {
+
+      table.addColumn(column, type, defaultValue);
+
+      sinon.assert.calledOnce(columnService.alterColumn);
+      sinon.assert.calledWithExactly(columnService.alterColumn, table, getTableSchemas(), column, type, sinon.match.func);
+
+    });
+
+    it('should pass an update function that sets the default value to new column', () => {
+
+      table.addColumn(column, type, defaultValue);
+
+      const updateCallback = 4;
+      const update = columnService.alterColumn.getCall(0).args[updateCallback];
+
+      expect(update({foo: 'bar'})).equals({
+        column: 'defaultValue',
+        foo: 'bar'
+      });
+
+    });
+
+    it('should return alter column result', () => {
+
+      const alterColumnPromise = new Promise(() => {});
+
+      columnService.alterColumn.returns(alterColumnPromise);
+
+      expect(table.addColumn(column, type, defaultValue)).equals(alterColumnPromise);
 
     });
 
