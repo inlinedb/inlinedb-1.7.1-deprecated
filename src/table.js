@@ -289,4 +289,13 @@ export class Table {
 
   }
 
+  updateColumn(column, type, defaultValue) {
+
+    return alterColumn(this, tableSchemas, column, type, row => ({
+      ...row,
+      [column]: defaultValue === undefined ? row[column] : defaultValue
+    }));
+
+  }
+
 }

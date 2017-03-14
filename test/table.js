@@ -821,4 +821,53 @@ describe('Given Table', () => {
 
   });
 
+  describe('when updating columns', () => {
+
+    const column = 'foo';
+    const defaultValue = 'defaultValue';
+    const type = 'Type';
+
+    it('should alter column', () => {
+
+      table.updateColumn(column, type, defaultValue);
+
+      sinon.assert.calledOnce(columnService.alterColumn);
+      sinon.assert.calledWithExactly(columnService.alterColumn, table, getTableSchemas(), column, type, sinon.match.func);
+
+    });
+
+    it('should pass an update function that sets the default value to updated column', () => {
+
+      table.updateColumn(column, type, defaultValue);
+
+      const updateCallback = 4;
+      const update = columnService.alterColumn.getCall(0).args[updateCallback];
+
+      expect(update({foo: 'bar'})).equals({foo: 'defaultValue'});
+
+    });
+
+    it('should pass an update function that sets the old value to updated column if default value is not given', () => {
+
+      table.updateColumn(column, type);
+
+      const updateCallback = 4;
+      const update = columnService.alterColumn.getCall(0).args[updateCallback];
+
+      expect(update({foo: 'bar'})).equals({foo: 'bar'});
+
+    });
+
+    it('should return alter column result', () => {
+
+      const alterColumnPromise = new Promise(() => {});
+
+      columnService.alterColumn.returns(alterColumnPromise);
+
+      expect(table.updateColumn(column, type, defaultValue)).equals(alterColumnPromise);
+
+    });
+
+  });
+
 });
