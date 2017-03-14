@@ -180,4 +180,17 @@ describe('Given file utility', () => {
 
   });
 
+  describe('when deleting database', () => {
+
+    it('should remove the base folder from system', () => {
+
+      fileService.deleteDatabase(dbName);
+
+      sinon.assert.calledOnce(rimraf.sync);
+      sinon.assert.calledWithExactly(rimraf.sync, `./${dbName}`);
+
+    });
+
+  });
+
 });

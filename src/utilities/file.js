@@ -58,3 +58,6 @@ export const saveTable = (dbName, tableName, data, done) =>
   mkdirp(`./${dbName}`, () =>
     fs.writeFile(getTableLocation(dbName, tableName), JSON.stringify(data), done)
   );
+
+export const deleteDatabase = dbName =>
+  rimraf.sync(`./${dbName}`);
