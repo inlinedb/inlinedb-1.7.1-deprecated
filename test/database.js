@@ -14,7 +14,12 @@ describe('Given Database', () => {
 
     sandbox = sinon.sandbox.create();
 
-    idbInstance = {};
+    idbInstance = {
+      config: {
+        table1: {},
+        table2: {}
+      }
+    };
 
     sandbox.stub(idbService, 'getIDBInstance')
       .withArgs(dbName)
@@ -35,7 +40,13 @@ describe('Given Database', () => {
   it('should have getters', () => {
 
     expect(database.dbName).equals(dbName);
-    expect(database.idb).equals(idbInstance);
+    expect(database.config).equals(idbInstance.config);
+
+  });
+
+  it('should list table names', () => {
+
+    expect(database.list()).equals(['table1', 'table2']);
 
   });
 

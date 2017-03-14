@@ -11,7 +11,7 @@ export class Database {
 
   }
 
-  get idb() {
+  get config() {
 
     return idbConfig.get(this);
 
@@ -20,7 +20,13 @@ export class Database {
   constructor(dbName) {
 
     dbNames.set(this, dbName);
-    idbConfig.set(this, getIDBInstance(dbName));
+    idbConfig.set(this, getIDBInstance(dbName).config);
+
+  }
+
+  list() {
+
+    return Object.keys(this.config);
 
   }
 
