@@ -3,23 +3,23 @@ import t from 'tcomb';
 const IDBConfig = t.struct({
   lastId: t.Number,
   schema: t.Object
-});
+}, 'IDBConfig');
 
 const OutputData = t.struct({
   lastId: t.Number,
   rows: t.Array
-});
+}, 'OutputData');
 
 const QueryData = t.struct({
   index: t.Object,
   lastId: t.Number,
   rows: t.Array
-});
+}, 'QueryData');
 
 const SaveData = t.struct({
   index: t.Object,
   rows: t.Array
-});
+}, 'SaveData');
 
 export const errors = {
   DB_NAME_IS_REQUIRED: 'Database name is required',
