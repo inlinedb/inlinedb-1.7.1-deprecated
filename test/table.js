@@ -10,7 +10,6 @@ import * as schemaService from '../src/utilities/schema';
 
 describe('Given Table', () => {
 
-  const Schema = {foo: 'String'};
   const dbName = 'dbName';
   const tableName = 'tableName';
   const loadTableCallback = 2;
@@ -20,7 +19,8 @@ describe('Given Table', () => {
     lastId: 0,
     rows: []
   };
-  let idbInstance,
+  let Schema,
+    idbInstance,
     sandbox,
     table;
 
@@ -36,6 +36,7 @@ describe('Given Table', () => {
 
   beforeEach(() => {
 
+    Schema = {foo: 'String'};
     sandbox = sinon.sandbox.create();
 
     idbInstance = {
@@ -687,6 +688,61 @@ describe('Given Table', () => {
       columnService.alterColumn.returns(alterColumnPromise);
 
       expect(table.addColumn(column, type, defaultValue)).equals(alterColumnPromise);
+
+    });
+
+  });
+
+  describe('when dropping columns', () => {
+
+    const updateColumnPromise = new Promise(() => {});
+    const column = 'foo';
+    let promise;
+
+    beforeEach(() => {
+
+      idbService.getIDBInstance.reset();
+      columnService.updateColumn.returns(updateColumnPromise);
+
+      promise = table.dropColumns(column);
+
+    });
+
+    it('should get idb instance', () => {
+
+      sinon.assert.calledOnce(idbService.getIDBInstance);
+      sinon.assert.calledWithExactly(idbService.getIDBInstance, dbName);
+
+    });
+
+    it('should read table schema', () => {
+
+      sinon.assert.calledOnce(idbInstance.readTable);
+      sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
+
+    });
+
+    it('should remove the columns from schema and update', () => {
+
+      const AlteredSchema = {};
+
+      sinon.assert.calledOnce(columnService.updateColumn);
+      sinon.assert.calledWithExactly(columnService.updateColumn, table, getTableSchemas(), AlteredSchema, sinon.match.func);
+
+    });
+
+    it('should pass an update function that returns row as it is', () => {
+
+      const updateCallback = 3;
+      const update = columnService.updateColumn.getCall(0).args[updateCallback];
+
+      expect(update({foo: 'bar'})).equals({foo: 'bar'});
+
+    });
+
+    it('should return alter column result', () => {
+
+      expect(promise).equals(updateColumnPromise);
 
     });
 

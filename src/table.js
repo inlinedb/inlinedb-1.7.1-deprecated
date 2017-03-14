@@ -1,9 +1,9 @@
 import {Any, Func, match} from 'tcomb';
+import {alterColumn, updateColumn} from './utilities/column';
 import {deleteTable, doesTableExist, loadTable, saveTable} from './utilities/file';
 import {errors, types} from './literals';
 import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
-import {alterColumn} from './utilities/column';
 import assert from 'assert';
 import {getIDBInstance} from './idb';
 
@@ -144,6 +144,16 @@ export class Table {
   drop() {
 
     Table.drop(this.dbName, this.tableName);
+
+  }
+
+  dropColumns(...columns) {
+
+    const {schema} = getIDBInstance(this.dbName).readTable(this.tableName);
+
+    columns.forEach(column => delete schema[column]);
+
+    return updateColumn(this, tableSchemas, schema, row => row);
 
   }
 
