@@ -40,7 +40,6 @@ describe('Given Database', () => {
   it('should have getters', () => {
 
     expect(database.dbName).equals(dbName);
-    expect(database.config).equals(idbInstance.config);
 
   });
 
