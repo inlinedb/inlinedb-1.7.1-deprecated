@@ -1,3 +1,4 @@
+import {Table} from './table';
 import {getIDBInstance} from './idb';
 
 const dbNames = new WeakMap();
@@ -19,6 +20,12 @@ export class Database {
   list() {
 
     return Object.keys(getIDBInstance(this.dbName).config);
+
+  }
+
+  createTable(tableName, Schema) {
+
+    return new Table(this.dbName, tableName, Schema);
 
   }
 

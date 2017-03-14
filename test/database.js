@@ -2,6 +2,7 @@ import {Database} from '../src/database';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as idbService from '../src/idb';
+import * as table from '../src/table';
 
 describe('Given Database', () => {
 
@@ -21,6 +22,7 @@ describe('Given Database', () => {
       }
     };
 
+    sandbox.stub(table, 'Table');
     sandbox.stub(idbService, 'getIDBInstance')
       .withArgs(dbName)
       .returns(idbInstance);
@@ -46,6 +48,23 @@ describe('Given Database', () => {
   it('should list table names', () => {
 
     expect(database.list()).equals(['table1', 'table2']);
+
+  });
+
+  describe('when creating a table', () => {
+
+    it('should instantiate Table', () => {
+
+      const Schema = {foo: 'String'};
+      const tableName = 'tableName';
+
+      database.createTable(tableName, Schema);
+
+      sinon.assert.calledOnce(table.Table);
+      sinon.assert.calledWithNew(table.Table);
+      sinon.assert.calledWithExactly(table.Table, dbName, tableName, Schema);
+
+    });
 
   });
 
