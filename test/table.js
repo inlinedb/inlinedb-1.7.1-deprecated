@@ -2,6 +2,7 @@ import {Table} from '../src/table';
 import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
+import {types} from '../src/literals';
 import * as columnService from '../src/utilities/column';
 import * as fileService from '../src/utilities/file';
 import * as idbService from '../src/idb';
@@ -76,6 +77,16 @@ describe('Given Table', () => {
   it('should be constructed and used as an object', () => {
 
     expect(table).object();
+
+  });
+
+  it('should have getters', () => {
+
+    expect(table.dbName).equals(dbName);
+    expect(table.idb).equals(idbInstance.readTable(dbName));
+    expect(table.tableName).equals(tableName);
+    expect(table.tableData).equals(new types.SaveData(defaultData));
+    expect(table.tableSchema).equals(getTableSchemas().get(table));
 
   });
 
