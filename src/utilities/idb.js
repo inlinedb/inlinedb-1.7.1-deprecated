@@ -1,5 +1,5 @@
-import {loadIDB, saveIDB} from './utilities/file';
-import {types} from './literals';
+import {loadIDB, saveIDB} from './file';
+import {types} from '../literals';
 
 const dbNames = new WeakMap();
 const idbConfigs = new WeakMap();

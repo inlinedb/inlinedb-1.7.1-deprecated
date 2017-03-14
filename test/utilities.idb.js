@@ -1,4 +1,4 @@
-import {closeIDB, getIDBInstance} from '../src/idb';
+import {closeIDB, getIDBInstance} from '../src/utilities/idb';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as fileService from '../src/utilities/file';

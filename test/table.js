@@ -5,7 +5,7 @@ import sinon from 'sinon';
 import {types} from '../src/literals';
 import * as columnService from '../src/utilities/column';
 import * as fileService from '../src/utilities/file';
-import * as idbService from '../src/idb';
+import * as idbService from '../src/utilities/idb';
 import * as queryService from '../src/utilities/query';
 import * as schemaService from '../src/utilities/schema';
 

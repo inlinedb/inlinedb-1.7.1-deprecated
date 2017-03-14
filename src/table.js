@@ -5,7 +5,7 @@ import {errors, types} from './literals';
 import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
 import assert from 'assert';
-import {getIDBInstance} from './idb';
+import {getIDBInstance} from './utilities/idb';
 import {Object as tObject} from 'tcomb';
 
 const dbNames = new WeakMap();

@@ -2,7 +2,7 @@ import {Database} from '../src/database';
 import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
-import * as idbService from '../src/idb';
+import * as idbService from '../src/utilities/idb';
 import * as table from '../src/table';
 
 describe('Given Database', () => {

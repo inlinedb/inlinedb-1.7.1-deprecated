@@ -2,7 +2,7 @@ import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as columnService from '../src/utilities/column';
-import * as idbService from '../src/idb';
+import * as idbService from '../src/utilities/idb';
 import * as schemaService from '../src/utilities/schema';
 
 describe('Given column utility', () => {

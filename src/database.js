@@ -1,7 +1,7 @@
 import {Table} from './table';
 import assert from 'assert';
 import {errors} from './literals';
-import {getIDBInstance} from './idb';
+import {getIDBInstance} from './utilities/idb';
 
 const dbNames = new WeakMap();
 

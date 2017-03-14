@@ -1,6 +1,6 @@
 import assert from 'assert';
 import {errors} from '../literals';
-import {getIDBInstance} from '../idb';
+import {getIDBInstance} from './idb';
 import {parse} from './schema';
 
 export const updateColumn = (table, tableSchemas, schema, update) => {
