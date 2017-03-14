@@ -17,15 +17,21 @@ export class Database {
 
   }
 
-  list() {
-
-    return Object.keys(getIDBInstance(this.dbName).config);
-
-  }
-
   createTable(tableName, Schema) {
 
     return new Table(this.dbName, tableName, Schema);
+
+  }
+
+  dropTable(tableName) {
+
+    new Table(this.dbName, tableName, {}).drop();
+
+  }
+
+  list() {
+
+    return Object.keys(getIDBInstance(this.dbName).config);
 
   }
 

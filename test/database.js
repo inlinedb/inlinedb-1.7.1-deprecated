@@ -7,6 +7,7 @@ import * as table from '../src/table';
 describe('Given Database', () => {
 
   const dbName = 'dbName';
+  const tableName = 'tableName';
   let database,
     idbInstance,
     sandbox;
@@ -56,13 +57,34 @@ describe('Given Database', () => {
     it('should instantiate Table', () => {
 
       const Schema = {foo: 'String'};
-      const tableName = 'tableName';
 
       database.createTable(tableName, Schema);
 
       sinon.assert.calledOnce(table.Table);
       sinon.assert.calledWithNew(table.Table);
       sinon.assert.calledWithExactly(table.Table, dbName, tableName, Schema);
+
+    });
+
+  });
+
+  describe('when dropping a table', () => {
+
+    it('should instantiate Table with empty schema to get its instance and drop it', () => {
+
+      const tableInstance = {
+        drop: sandbox.stub()
+      };
+
+      table.Table.withArgs(dbName, tableName, {}).returns(tableInstance);
+
+      database.dropTable(tableName);
+
+      sinon.assert.calledOnce(table.Table);
+      sinon.assert.calledWithNew(table.Table);
+      sinon.assert.calledWithExactly(table.Table, dbName, tableName, {});
+      sinon.assert.calledOnce(tableInstance.drop);
+      sinon.assert.calledWithExactly(tableInstance.drop);
 
     });
 
