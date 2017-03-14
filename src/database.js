@@ -1,4 +1,6 @@
 import {Table} from './table';
+import assert from 'assert';
+import {errors} from './literals';
 import {getIDBInstance} from './idb';
 
 const dbNames = new WeakMap();
@@ -12,6 +14,8 @@ export class Database {
   }
 
   constructor(dbName) {
+
+    assert(dbName, errors.DB_NAME_IS_REQUIRED);
 
     dbNames.set(this, dbName);
 

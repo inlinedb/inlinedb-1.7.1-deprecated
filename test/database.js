@@ -1,4 +1,5 @@
 import {Database} from '../src/database';
+import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
 import * as idbService from '../src/idb';
@@ -48,7 +49,36 @@ describe('Given Database', () => {
 
   it('should list table names', () => {
 
-    expect(database.list()).equals(['table1', 'table2']);
+  });
+
+  describe('when listing table names', () => {
+
+    let tables;
+
+    beforeEach(() => tables = database.list());
+
+    it('should get idb instance', () => {
+
+      sinon.assert.calledOnce(idbService.getIDBInstance);
+      sinon.assert.calledWithExactly(idbService.getIDBInstance, dbName);
+
+    });
+
+    it('should return array of table names', () => {
+
+      expect(tables).equals(['table1', 'table2']);
+
+    });
+
+  });
+
+  describe('when instantiating', () => {
+
+    it('should throw if database name is not defined', () => {
+
+      expect(() => new Database()).throws(errors.DB_NAME_IS_REQUIRED);
+
+    });
 
   });
 
