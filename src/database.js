@@ -1,5 +1,6 @@
 import {Table} from './table';
 import assert from 'assert';
+import {deleteDatabase} from './utilities/file';
 import {errors} from './literals';
 import {getIDBInstance} from './utilities/idb';
 
@@ -24,6 +25,12 @@ export class Database {
   createTable(tableName, Schema) {
 
     return new Table(this.dbName, tableName, Schema);
+
+  }
+
+  drop() {
+
+    deleteDatabase(this.dbName);
 
   }
 

@@ -2,6 +2,7 @@ import {Database} from '../src/database';
 import {errors} from '../src/literals';
 import {expect} from 'code';
 import sinon from 'sinon';
+import * as fileService from '../src/utilities/file';
 import * as idbService from '../src/utilities/idb';
 import * as table from '../src/table';
 
@@ -24,6 +25,7 @@ describe('Given Database', () => {
       }
     };
 
+    sandbox.stub(fileService, 'deleteDatabase');
     sandbox.stub(table, 'Table');
     sandbox.stub(idbService, 'getIDBInstance')
       .withArgs(dbName)
@@ -128,6 +130,19 @@ describe('Given Database', () => {
     it('should return database', () => {
 
       expect(returnValue).equals(database);
+
+    });
+
+  });
+
+  describe('when dropping database', () => {
+
+    it('should delete the database', () => {
+
+      database.drop();
+
+      sinon.assert.calledOnce(fileService.deleteDatabase);
+      sinon.assert.calledWithExactly(fileService.deleteDatabase, dbName);
 
     });
 
