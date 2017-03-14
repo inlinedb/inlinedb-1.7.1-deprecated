@@ -6,6 +6,7 @@ import {executeQuery, queryTypes} from './utilities/query';
 import {parse, validate} from './utilities/schema';
 import assert from 'assert';
 import {getIDBInstance} from './idb';
+import {Object as tObject} from 'tcomb';
 
 const dbNames = new WeakMap();
 const idbConfig = new WeakMap();
@@ -67,7 +68,7 @@ export class Table {
 
   get config() {
 
-    return idbConfig.get(this);
+    return tObject(idbConfig.get(this));
 
   }
 
