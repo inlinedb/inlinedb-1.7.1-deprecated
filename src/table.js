@@ -196,6 +196,24 @@ export class Table {
 
   }
 
+  renameColumn(source, destination) {
+
+    assert(source, errors.INVALID_COLUMN_NAME);
+    assert(destination, errors.INVALID_COLUMN_NAME);
+
+    const {schema} = getIDBInstance(this.dbName).readTable(this.tableName);
+    const type = schema[source];
+
+    delete schema[source];
+    schema[destination] = type;
+
+    return updateColumn(this, tableSchemas, schema, row => ({
+      ...row,
+      [destination]: row[source]
+    }));
+
+  }
+
   revert() {
 
     tableQueries.set(this, []);

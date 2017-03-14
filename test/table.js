@@ -748,4 +748,77 @@ describe('Given Table', () => {
 
   });
 
+  describe('when renaming columns', () => {
+
+    const updateColumnPromise = new Promise(() => {});
+    const destination = 'bar';
+    const source = 'foo';
+    let promise;
+
+    beforeEach(() => {
+
+      idbService.getIDBInstance.reset();
+      columnService.updateColumn.returns(updateColumnPromise);
+
+      promise = table.renameColumn(source, destination);
+
+    });
+
+    it('should throw if source is not given', () => {
+
+      expect(() => table.renameColumn()).throws(errors.INVALID_COLUMN_NAME);
+
+    });
+
+    it('should throw if destination is not given', () => {
+
+      expect(() => table.renameColumn(source)).throws(errors.INVALID_COLUMN_NAME);
+
+    });
+
+    it('should get idb instance', () => {
+
+      sinon.assert.calledOnce(idbService.getIDBInstance);
+      sinon.assert.calledWithExactly(idbService.getIDBInstance, dbName);
+
+    });
+
+    it('should read table schema', () => {
+
+      sinon.assert.calledOnce(idbInstance.readTable);
+      sinon.assert.calledWithExactly(idbInstance.readTable, tableName);
+
+    });
+
+    it('should remove the source and add destination column with same type and update', () => {
+
+      const AlteredSchema = {
+        bar: 'String'
+      };
+
+      sinon.assert.calledOnce(columnService.updateColumn);
+      sinon.assert.calledWithExactly(columnService.updateColumn, table, getTableSchemas(), AlteredSchema, sinon.match.func);
+
+    });
+
+    it('should pass an update function that returns row copies value from source to destination', () => {
+
+      const updateCallback = 3;
+      const update = columnService.updateColumn.getCall(0).args[updateCallback];
+
+      expect(update({foo: 'Type'})).equals({
+        bar: 'Type',
+        foo: 'Type'
+      });
+
+    });
+
+    it('should return alter column result', () => {
+
+      expect(promise).equals(updateColumnPromise);
+
+    });
+
+  });
+
 });
