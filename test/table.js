@@ -83,7 +83,7 @@ describe('Given Table', () => {
   it('should have getters', () => {
 
     expect(table.dbName).equals(dbName);
-    expect(table.idb).equals(idbInstance.readTable(dbName));
+    expect(table.config).equals(idbInstance.readTable(dbName));
     expect(table.tableName).equals(tableName);
     expect(table.tableData).equals(new types.SaveData(defaultData));
     expect(table.tableSchema).equals(getTableSchemas().get(table));

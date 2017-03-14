@@ -13,6 +13,12 @@ class IDB {
 
   }
 
+  get config() {
+
+    return idbConfigs.get(this);
+
+  }
+
   constructor(dbName) {
 
     idbConfigs.set(this, loadIDB(dbName));
@@ -23,7 +29,7 @@ class IDB {
 
   createTable(tableName, schema, lastId = 0) {
 
-    const config = idbConfigs.get(this);
+    const config = this.config;
 
     config[tableName] = new types.IDBConfig({
       lastId,
@@ -41,7 +47,7 @@ class IDB {
 
   dropTable(tableName) {
 
-    const config = idbConfigs.get(this);
+    const config = this.config;
 
     delete config[tableName];
 
@@ -54,7 +60,7 @@ class IDB {
 
   readTable(tableName) {
 
-    return idbConfigs.get(this)[tableName];
+    return this.config[tableName];
 
   }
 

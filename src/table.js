@@ -65,15 +65,15 @@ export class Table {
 
   }
 
-  get dbName() {
+  get config() {
 
-    return dbNames.get(this);
+    return idbConfig.get(this);
 
   }
 
-  get idb() {
+  get dbName() {
 
-    return idbConfig.get(this);
+    return dbNames.get(this);
 
   }
 
@@ -230,7 +230,7 @@ export class Table {
 
         tableData.set(this, error ? defaultData : data);
 
-        const newData = executeQueries(this, this.tableSchema, this.idb.lastId);
+        const newData = executeQueries(this, this.tableSchema, this.config.lastId);
 
         this.revert();
 
@@ -240,7 +240,7 @@ export class Table {
 
           getIDBInstance(this.dbName).updateTable(
             this.tableName,
-            this.idb.schema,
+            this.config.schema,
             newData.lastId
           );
 
