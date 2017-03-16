@@ -1,3 +1,4 @@
+import {gzip, unzip} from 'zlib';
 import fs from 'fs';
 import {mkdirp} from 'mkdirp';
 import rimraf from 'rimraf';
@@ -51,12 +52,22 @@ export const deleteTable = (dbName, tableName) =>
 export const loadTable = (dbName, tableName, done) =>
   fs.readFile(
     getTableLocation(dbName, tableName),
-    (err, data) => err ? done(err) : done(null, JSON.parse(data.toString()))
+    (error, compressed) => error ? done(error) : unzip(
+        compressed,
+        (err, data) => err ? done(err) : done(null, JSON.parse(data.toString()))
+      )
   );
 
 export const saveTable = (dbName, tableName, data, done) =>
-  mkdirp(`./${dbName}`, () =>
-    fs.writeFile(getTableLocation(dbName, tableName), JSON.stringify(data), done)
+  mkdirp(`./${dbName}`, error =>
+    error ? done(error) : gzip(
+        JSON.stringify(data),
+        (err, compressed) => err ? done(err) : fs.writeFile(
+            getTableLocation(dbName, tableName),
+            compressed,
+            done
+          )
+      )
   );
 
 export const deleteDatabase = dbName =>

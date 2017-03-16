@@ -3,6 +3,7 @@ import fs from 'fs';
 import mkdirp from 'mkdirp';
 import rimraf from 'rimraf';
 import sinon from 'sinon';
+import zlib from 'zlib';
 import * as fileService from '../src/utilities/file';
 
 describe('Given file utility', () => {
@@ -30,6 +31,8 @@ describe('Given file utility', () => {
     sandbox.stub(fs, 'writeFileSync');
     sandbox.stub(mkdirp, 'mkdirp');
     sandbox.stub(rimraf, 'sync');
+    sandbox.stub(zlib, 'gzip');
+    sandbox.stub(zlib, 'unzip');
 
   });
 
@@ -37,19 +40,64 @@ describe('Given file utility', () => {
 
   describe('when saving table', () => {
 
-    it('should write data to the file', () => {
+    let done;
 
-      mkdirp.mkdirp.callsArg(1);
+    beforeEach(() => done = sandbox.stub());
 
-      const done = sandbox.stub;
+    it('should create the directory', () => {
 
       fileService.saveTable(dbName, tableName, data, done);
 
       sinon.assert.calledOnce(mkdirp.mkdirp);
       sinon.assert.calledWithExactly(mkdirp.mkdirp, `./${dbName}`, sinon.match.func);
 
+    });
+
+    it('should call done with error if failed to create directory', () => {
+
+      mkdirp.mkdirp.callsArgWith(1, 'create directory error');
+
+      fileService.saveTable(dbName, tableName, data, done);
+
+      sinon.assert.calledOnce(done);
+      sinon.assert.calledWithExactly(done, 'create directory error');
+
+    });
+
+    it('should compress the data', () => {
+
+      mkdirp.mkdirp.callsArgWith(1, false);
+
+      fileService.saveTable(dbName, tableName, data, done);
+
+      sinon.assert.calledOnce(zlib.gzip);
+      sinon.assert.calledWithExactly(zlib.gzip, JSON.stringify(data), sinon.match.func);
+
+    });
+
+    it('should call done with error if failed to compress data', () => {
+
+      mkdirp.mkdirp.callsArgWith(1, false);
+      zlib.gzip.callsArgWith(1, 'compression error');
+
+      fileService.saveTable(dbName, tableName, data, done);
+
+      sinon.assert.calledOnce(done);
+      sinon.assert.calledWithExactly(done, 'compression error');
+
+    });
+
+    it('should write the compressed data to the file', () => {
+
+      const compressedData = 'compressedData';
+
+      mkdirp.mkdirp.callsArg(1);
+      zlib.gzip.callsArgWith(1, false, compressedData);
+
+      fileService.saveTable(dbName, tableName, data, done);
+
       sinon.assert.calledOnce(fs.writeFile);
-      sinon.assert.calledWithExactly(fs.writeFile, tablePath, JSON.stringify(data), done);
+      sinon.assert.calledWithExactly(fs.writeFile, tablePath, compressedData, done);
 
     });
 
@@ -74,20 +122,46 @@ describe('Given file utility', () => {
 
     });
 
-    it('should call done with err', () => {
+    it('should call done with error if failed to read', () => {
 
-      fs.readFile.callsArgWith(1, true);
+      fs.readFile.callsArgWith(1, 'read file error');
 
       fileService.loadTable(dbName, tableName, done);
 
       sinon.assert.calledOnce(done);
-      sinon.assert.calledWithExactly(done, true);
+      sinon.assert.calledWithExactly(done, 'read file error');
 
     });
 
-    it('should call done with data', () => {
+    it('should decompress the data', () => {
 
-      fs.readFile.callsArgWith(1, false, JSON.stringify(data));
+      const compressedData = 'compressedData';
+
+      fs.readFile.callsArgWith(1, false, compressedData);
+
+      fileService.loadTable(dbName, tableName, done);
+
+      sinon.assert.calledOnce(zlib.unzip);
+      sinon.assert.calledWithExactly(zlib.unzip, compressedData, sinon.match.func);
+
+    });
+
+    it('should call done with error if failed to decompress', () => {
+
+      fs.readFile.callsArgWith(1, false);
+      zlib.unzip.callsArgWith(1, 'compression error');
+
+      fileService.loadTable(dbName, tableName, done);
+
+      sinon.assert.calledOnce(done);
+      sinon.assert.calledWithExactly(done, 'compression error');
+
+    });
+
+    it('should call done with parsed data', () => {
+
+      fs.readFile.callsArgWith(1, false);
+      zlib.unzip.callsArgWith(1, false, JSON.stringify(data));
 
       fileService.loadTable(dbName, tableName, done);
 
